@@ -3,3 +3,5 @@
 /build
 /skid
 /run
+/NativeUtils/zig-out
+/NativeUtils/.zig-cache
