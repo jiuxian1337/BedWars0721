@@ -30,15 +30,6 @@ java {
 tasks {
     shadowJar {
         relocate("com.alessiodp.libby", "cc.xpWars.libby")
-
-        manifest {
-            attributes(
-                "Agent-Class" to "cc.xpWars.agent.AgentMain",
-                "Premain-Class" to "cc.xpWars.agent.AgentMain",
-                "Can-Retransform-Classes" to "true",
-                "Can-Set-Native-Method-Prefix" to "true"
-            )
-        }
     }
 
     processResources {
@@ -50,13 +41,7 @@ tasks {
     runServer {
         minecraftVersion("1.8.8")
         systemProperty("com.mojang.eula.agree", "true")
-        jvmArgs(
-            "-Xmx2G", "-Xms2G",
-            "-Djdk.attach.allowAttachSelf=true",
-            "--add-opens", "java.base/jdk.internal.access=ALL-UNNAMED",
-            "--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED",
-            "--add-opens", "java.management/sun.management=ALL-UNNAMED"
-        )
+        jvmArgs("-Xmx2G", "-Xms2G")
         runDirectory(file("run"))
     }
 }

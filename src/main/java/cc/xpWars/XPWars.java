@@ -1,6 +1,5 @@
 package cc.xpWars;
 
-import cc.xpWars.agent.AgentInjector;
 import cc.xpWars.command.CommandManager;
 import cc.xpWars.config.ConfigManager;
 import com.alessiodp.libby.Library;
@@ -48,15 +47,6 @@ public final class XPWars extends JavaPlugin {
 
             configManager = new ConfigManager(getLogger());
             configManager.init();
-
-            if (AgentInjector.inject()) {
-                getLogger().info("Java agent injected successfully");
-            } else {
-                getLogger().warning("Agent injection failed — bytecode hooks unavailable");
-                getLogger().warning("Disabling...");
-                Bukkit.getPluginManager().disablePlugin(this);
-                Bukkit.getScheduler().cancelTasks(this);
-            }
 
             CommandManager commandManager = new CommandManager();
             getCommand("xpwars").setExecutor(commandManager);
