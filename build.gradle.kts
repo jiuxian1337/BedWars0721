@@ -20,6 +20,7 @@ dependencies {
 
     compileOnly("org.spongepowered:configurate-yaml:4.2.0")
     implementation("com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT")
+    compileOnly("org.ow2.asm:asm:9.10.1")
 }
 
 java {
@@ -29,6 +30,15 @@ java {
 tasks {
     shadowJar {
         relocate("com.alessiodp.libby", "cc.xpWars.libby")
+
+        manifest {
+            attributes(
+                "Agent-Class" to "cc.xpWars.agent.AgentMain",
+                "Premain-Class" to "cc.xpWars.agent.AgentMain",
+                "Can-Retransform-Classes" to "true",
+                "Can-Set-Native-Method-Prefix" to "true"
+            )
+        }
     }
 
     processResources {

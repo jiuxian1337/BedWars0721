@@ -1,5 +1,6 @@
 package cc.xpWars;
 
+import cc.xpWars.agent.AgentInjector;
 import cc.xpWars.command.CommandManager;
 import cc.xpWars.config.ConfigManager;
 import com.alessiodp.libby.Library;
@@ -29,17 +30,30 @@ public final class XPWars extends JavaPlugin {
             libraryManager.addRepository("https://maven.aliyun.com/nexus/content/groups/public/");
             libraryManager.addMavenCentral();
 
-            Library configurateYaml = Library.builder()
+            Library configurate = Library.builder()
                     .groupId("org.spongepowered")
                     .artifactId("configurate-yaml")
                     .version("4.2.0")
                     .resolveTransitiveDependencies(true)
                     .build();
 
-            libraryManager.loadLibraries(configurateYaml);
+            Library asm = Library.builder()
+                    .groupId("org.ow2.asm")
+                    .artifactId("asm")
+                    .version("9.10.1")
+                    .resolveTransitiveDependencies(true)
+                    .build();
+
+            libraryManager.loadLibraries(configurate, asm);
 
             configManager = new ConfigManager(getLogger());
             configManager.init();
+
+            if (AgentInjector.inject()) {
+                getLogger().info("Java agent injected successfully");
+            } else {
+                getLogger().warning("Agent injection failed — bytecode hooks unavailable");
+            }
 
             CommandManager commandManager = new CommandManager();
             getCommand("xpwars").setExecutor(commandManager);

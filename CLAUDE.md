@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+
+- **No comments.** Do not write JavaDoc, inline comments, or block comments. Code should be self-documenting through clear naming. XML comments and the `@` annotations/attributes on project config files (plugin.yml, build.gradle.kts) are not comments and are fine.
+
 ## Project Overview
 
 BedWars1058-XPWars is a Minecraft addon plugin for the BedWars1058 minigame. It introduces an "XP mode" where in-game currencies (iron, gold, emeralds, XP bottles) can be converted into XP/experience points for use in a special shop.
