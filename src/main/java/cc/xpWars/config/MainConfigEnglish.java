@@ -1,0 +1,34 @@
+package cc.xpWars.config;
+
+import com.andrei1058.bedwars.BedWars;
+import lombok.Getter;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
+
+import java.util.*;
+
+@Getter
+@ConfigSerializable
+public class MainConfigEnglish implements MainConfig {
+    @Setting("messages.prefix")
+    @Comment("Plugin message prefix")
+    private String prefix = "&7[&bXPWars&7] &r";
+
+    @Setting("messages.level")
+    @Comment("Currency display text in the XP mode shop")
+    private String level = "&fExperience";
+
+    @Setting("currency")
+    @Comment("Currencies convertible to XP. Key = material name, Value = XP amount")
+    private Map<String, Integer> currency = new HashMap<>() {{
+        put("IRON_INGOT", 1);
+        put("GOLD_INGOT", 10);
+        put(BedWars.getForCurrentVersion("EXP_BOTTLE", "EXP_BOTTLE", "EXPERIENCE_BOTTLE"), 10);
+        put("EMERALD", 100);
+    }};
+
+    @Setting("xp-arenas")
+    @Comment("Arenas where XP mode is enabled")
+    private List<String> xpArenas = new ArrayList<>();
+}

@@ -1,27 +1,46 @@
 plugins {
     id("java-library")
+    id("com.gradleup.shadow") version "9.0.0-beta8"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 repositories {
     mavenCentral()
     maven("https://repo.codemc.io/repository/nms/")
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://repo.alessiodp.com/snapshots/")
 }
 
 dependencies {
-    implementation("org.spigotmc:spigot:1.8.8-R0.1-SNAPSHOT")
-    implementation(fileTree("libs"))
+    compileOnly("org.spigotmc:spigot:1.8.8-R0.1-SNAPSHOT")
+    compileOnly(fileTree("libs"))
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
+
+    compileOnly("org.spongepowered:configurate-yaml:4.2.0")
+    implementation("com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT")
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(11)
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
 tasks {
+    shadowJar {
+        relocate("com.alessiodp.libby", "cc.xpWars.libby")
+    }
+
     processResources {
         val props = mapOf("version" to version)
         filesMatching("plugin.yml") {
             expand(props)
         }
+    }
+    runServer {
+        minecraftVersion("1.8.8")
+        systemProperty("com.mojang.eula.agree", "true")
+        jvmArgs("-Xmx2G", "-Xms2G")
+        runDirectory(file("run"))
     }
 }
