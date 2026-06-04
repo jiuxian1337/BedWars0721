@@ -1,0 +1,5 @@
+name: BedWars1058-XPWars
+version: '${version}'
+
+main: cc.xpWars.XPWars
+api-version: '1.18'
