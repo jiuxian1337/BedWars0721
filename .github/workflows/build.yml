@@ -18,6 +18,10 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.16.0
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: false

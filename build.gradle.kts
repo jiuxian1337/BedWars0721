@@ -28,16 +28,33 @@ java {
 }
 
 tasks {
-    shadowJar {
-        relocate("com.alessiodp.libby", "cc.xpWars.libby")
+    val buildNative by registering(Exec::class) {
+        group = "native"
+        description = "Build native libraries for all platforms using Zig"
+        workingDir = file("NativeUtils")
+        commandLine("zig", "build", "all")
+    }
+
+    val copyNativeLibs by registering(Copy::class) {
+        group = "native"
+        description = "Copy built native libraries into resources"
+        dependsOn(buildNative)
+        from(fileTree("NativeUtils/zig-out"))
+        into(layout.buildDirectory.dir("resources/main/natives"))
     }
 
     processResources {
+        dependsOn(copyNativeLibs)
         val props = mapOf("version" to version)
         filesMatching("plugin.yml") {
             expand(props)
         }
     }
+
+    shadowJar {
+        relocate("com.alessiodp.libby", "cc.xpWars.libby")
+    }
+
     runServer {
         minecraftVersion("1.8.8")
         systemProperty("com.mojang.eula.agree", "true")
