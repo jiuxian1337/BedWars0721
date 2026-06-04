@@ -1,7 +1,9 @@
 package cc.xpWars.agent;
 
 import java.io.File;
+import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
@@ -27,9 +29,9 @@ public final class AgentInjector {
             LOG.info("Self-attaching agent (PID=" + pid + ", JAR=" + jarPath + ")");
 
             if (isJava9OrLater()) {
-                attachJava9Plus(pid, jarPath);
+                injectJava9Plus(pid, jarPath);
             } else {
-                attachJava8(pid, jarPath);
+                injectJava8(pid, jarPath);
             }
 
             LOG.info("Agent injected successfully");
@@ -67,7 +69,7 @@ public final class AgentInjector {
         }
     }
 
-    private static void attachJava8(String pid, String jarPath) throws Exception {
+    private static void injectJava8(String pid, String jarPath) throws Exception {
         File toolsJar = findToolsJar();
         LOG.info("Java 8 detected — loading tools.jar from " + toolsJar.getAbsolutePath());
 
@@ -107,15 +109,52 @@ public final class AgentInjector {
         );
     }
 
-    private static void attachJava9Plus(String pid, String jarPath) throws Exception {
-        LOG.info("Java 9+ detected — using built-in attach API");
-
-        Class<?> vmClass = Class.forName("com.sun.tools.attach.VirtualMachine");
-        Object vm = vmClass.getMethod("attach", String.class).invoke(null, pid);
-        try {
-            vmClass.getMethod("loadAgent", String.class).invoke(vm, jarPath);
-        } finally {
-            vmClass.getMethod("detach").invoke(vm);
+    private static void injectJava9Plus(String pid, String jarPath) throws Exception {
+        Instrumentation inst = getInstrumentationViaSharedSecrets();
+        if (inst != null) {
+            LOG.info("Java 9+ — using SharedSecrets to get Instrumentation directly");
+            AgentMain.agentmain(null, inst);
+            return;
         }
+
+        inst = getInstrumentationViaAgentLoader(jarPath);
+        if (inst != null) {
+            LOG.info("Java 9+ — using HotSpotDiagnosticMXBean agent path injection");
+            AgentMain.agentmain(null, inst);
+            return;
+        }
+
+        throw new IllegalStateException(
+                "Cannot obtain Instrumentation on Java 9+. "
+                        + "Add -Djdk.attach.allowAttachSelf=true to JVM arguments."
+        );
+    }
+
+    private static Instrumentation getInstrumentationViaSharedSecrets() {
+        try {
+            Class<?> c = Class.forName("jdk.internal.access.SharedSecrets");
+            Object access = c.getMethod("getJavaLangInstrumentAccess").invoke(null);
+            Method getInst = access.getClass().getMethod("getInstrumentation");
+            return (Instrumentation) getInst.invoke(access);
+        } catch (Exception e) {
+            LOG.warning("SharedSecrets unavailable: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static Instrumentation getInstrumentationViaAgentLoader(String jarPath) {
+        try {
+            Class<?> c = Class.forName("com.sun.tools.attach.VirtualMachine");
+            Object vm = c.getMethod("attach", String.class).invoke(null, getPid());
+            try {
+                c.getMethod("loadAgent", String.class).invoke(vm, jarPath);
+            } finally {
+                c.getMethod("detach").invoke(vm);
+            }
+        } catch (Exception e) {
+            LOG.warning("VirtualMachine.attach self-attach blocked: " + e.getMessage());
+            return null;
+        }
+        return getInstrumentationViaSharedSecrets();
     }
 }

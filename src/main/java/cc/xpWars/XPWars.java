@@ -53,6 +53,9 @@ public final class XPWars extends JavaPlugin {
                 getLogger().info("Java agent injected successfully");
             } else {
                 getLogger().warning("Agent injection failed — bytecode hooks unavailable");
+                getLogger().warning("Disabling...");
+                Bukkit.getPluginManager().disablePlugin(this);
+                Bukkit.getScheduler().cancelTasks(this);
             }
 
             CommandManager commandManager = new CommandManager();
@@ -60,8 +63,8 @@ public final class XPWars extends JavaPlugin {
             getCommand("xpwars").setTabCompleter(commandManager);
             printStartupMessage("&fBedWars1058 &7found and hooked successfully.");
         } else {
-            Bukkit.getLogger().severe("There is no BedWars plugin installed!");
-            Bukkit.getLogger().severe("Disabling...");
+            getLogger().warning("There is no BedWars plugin installed!");
+            getLogger().warning("Disabling...");
             Bukkit.getPluginManager().disablePlugin(this);
             Bukkit.getScheduler().cancelTasks(this);
         }
@@ -76,21 +79,20 @@ public final class XPWars extends JavaPlugin {
     }
 
     private void printStartupMessage(String hookMessage) {
-        ConsoleCommandSender console = Bukkit.getConsoleSender();
-        console.sendMessage("-------------------------------------------------");
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
-        console.sendMessage(this.pluginName + " v" + this.pluginVersion);
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
-        console.sendMessage("Successfully Loaded");
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', hookMessage));
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
-        console.sendMessage("Author - jiuxian_baka");
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Running Java &f" + System.getProperty("java.version")));
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Running &f" + Bukkit.getServer().getName() + " &7fork &fv" + Bukkit.getServer().getBukkitVersion()));
-        console.sendMessage("-------------------------------------------------");
-        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info("-------------------------------------------------");
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info(this.pluginName + " v" + this.pluginVersion);
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info("Successfully Loaded");
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', hookMessage));
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info("Author - jiuxian_baka");
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&7Running Java &f" + System.getProperty("java.version")));
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&7Running &f" + Bukkit.getServer().getName() + " &7fork &fv" + Bukkit.getServer().getBukkitVersion()));
+        getLogger().info("-------------------------------------------------");
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
     }
 
 }

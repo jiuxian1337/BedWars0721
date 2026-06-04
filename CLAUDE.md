@@ -67,6 +67,22 @@ Minecraft material → XP value, configured in `config.yml`:
 
 `plugin.yml` uses Gradle resource filtering — `version` is expanded from `gradle.properties`. Permission nodes: `xpwars.admin` (parent), `xpwars.command.reload`, `xpwars.command.addarena` (all default to op).
 
+### Java Agent (bytecode hooks)
+
+The plugin self-injects as a Java agent at startup to modify BedWars1058 bytecode via ASM.
+
+- **AgentInjector** — Java 8: tools.jar + VirtualMachine.attach(). Java 9+: SharedSecrets → Instrumentation directly.
+- **AgentMain** — agentmain/premain entry, registers XpModeTransformer, retransforms loaded classes.
+- **XpModeTransformer** — ClassFileTransformer backed by ConcurrentHashMap hook registry. Register hooks with `XpModeTransformer.register("com/andrei1058/...", cv -> new MyVisitor(cv))`.
+
+Production JVM flags (Java 9+):
+```
+-Djdk.attach.allowAttachSelf=true
+--add-opens java.base/jdk.internal.access=ALL-UNNAMED
+--add-opens java.base/jdk.internal.misc=ALL-UNNAMED
+--add-opens java.management/sun.management=ALL-UNNAMED
+```
+
 ## Agent skills
 
 ### Issue tracker

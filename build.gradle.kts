@@ -50,7 +50,13 @@ tasks {
     runServer {
         minecraftVersion("1.8.8")
         systemProperty("com.mojang.eula.agree", "true")
-        jvmArgs("-Xmx2G", "-Xms2G")
+        jvmArgs(
+            "-Xmx2G", "-Xms2G",
+            "-Djdk.attach.allowAttachSelf=true",
+            "--add-opens", "java.base/jdk.internal.access=ALL-UNNAMED",
+            "--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED",
+            "--add-opens", "java.management/sun.management=ALL-UNNAMED"
+        )
         runDirectory(file("run"))
     }
 }

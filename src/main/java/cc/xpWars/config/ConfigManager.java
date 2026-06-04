@@ -38,7 +38,6 @@ public final class ConfigManager {
             try {
                 ConfigurationNode root = loader.load();
                 mainConfig = root.get(configClass);
-                logger.info("Loaded config.yml (" + configClass.getSimpleName() + ")");
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Failed to load config.yml, using defaults", e);
                 mainConfig = newDefault(configClass);
