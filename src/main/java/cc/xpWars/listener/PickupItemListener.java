@@ -17,12 +17,12 @@ public class PickupItemListener implements Listener {
     public void onPickupItem(PlayerPickupItemEvent event){
         Player player = event.getPlayer();
         IArena arena = Arena.getArenaByPlayer(player);
-        if (arena == null || !arena.isPlayer(event.getPlayer()) || arena.isSpectator(event.getPlayer())) return;
+        if (arena == null || !XPUtils.isXPArena(arena.getArenaName()) || !arena.isPlayer(event.getPlayer()) || arena.isSpectator(event.getPlayer())) return;
         Item item = event.getItem();
         int xp = XPUtils.getLevel(item.getItemStack().getType()) * item.getItemStack().getAmount();
-        if (XPUtils.isXPArena(arena.getArenaName()) && xp != 0 && !event.isCancelled()){
+        if (xp != 0 && !event.isCancelled()){
             event.setCancelled(true);
-            player.playSound(player.getLocation(), Sound.valueOf(BedWars.getForCurrentVersion("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP")), 0.6f, 1.3f);
+            player.playSound(player.getLocation(), XPUtils.getSound(), 0.6f, 1.3f);
             player.setLevel(player.getLevel() + xp);
             item.remove();
         }

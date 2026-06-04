@@ -1,7 +1,9 @@
 package cc.xpWars;
 
+import cc.xpWars.asm.TransformerManager;
 import cc.xpWars.command.CommandManager;
 import cc.xpWars.config.ConfigManager;
+import cc.xpWars.listener.PickupItemListener;
 import com.alessiodp.libby.Library;
 import com.alessiodp.libby.BukkitLibraryManager;
 import lombok.Getter;
@@ -43,7 +45,14 @@ public final class XPWars extends JavaPlugin {
                     .resolveTransitiveDependencies(true)
                     .build();
 
-            libraryManager.loadLibraries(configurate, asm);
+            Library asmTree = Library.builder()
+                    .groupId("org.ow2.asm")
+                    .artifactId("asm-tree")
+                    .version("9.10.1")
+                    .resolveTransitiveDependencies(true)
+                    .build();
+
+            libraryManager.loadLibraries(configurate, asm, asmTree);
 
             configManager = new ConfigManager(getLogger());
             configManager.init();
@@ -51,6 +60,8 @@ public final class XPWars extends JavaPlugin {
             CommandManager commandManager = new CommandManager();
             getCommand("xpwars").setExecutor(commandManager);
             getCommand("xpwars").setTabCompleter(commandManager);
+            TransformerManager.init();
+            getServer().getPluginManager().registerEvents(new PickupItemListener(), this);
             printStartupMessage("&fBedWars1058 &7found and hooked successfully.");
         } else {
             getLogger().warning("There is no BedWars plugin installed!");
@@ -69,20 +80,21 @@ public final class XPWars extends JavaPlugin {
     }
 
     private void printStartupMessage(String hookMessage) {
-        getLogger().info("-------------------------------------------------");
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
-        getLogger().info(this.pluginName + " v" + this.pluginVersion);
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
-        getLogger().info("Successfully Loaded");
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', hookMessage));
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
-        getLogger().info("Author - jiuxian_baka");
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&7Running Java &f" + System.getProperty("java.version")));
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&7Running &f" + Bukkit.getServer().getName() + " &7fork &fv" + Bukkit.getServer().getBukkitVersion()));
-        getLogger().info("-------------------------------------------------");
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', "&r "));
+        ConsoleCommandSender console = Bukkit.getConsoleSender();
+        console.sendMessage("-------------------------------------------------");
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        console.sendMessage(this.pluginName + " v" + this.pluginVersion);
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        console.sendMessage("Successfully Loaded");
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', hookMessage));
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        console.sendMessage("Author - jiuxian_baka");
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Running Java &f" + System.getProperty("java.version")));
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Running &f" + Bukkit.getServer().getName() + " &7fork &fv" + Bukkit.getServer().getBukkitVersion()));
+        console.sendMessage("-------------------------------------------------");
+        console.sendMessage(ChatColor.translateAlternateColorCodes('&', "&r "));
     }
 
 }

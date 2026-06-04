@@ -5,3 +5,4 @@
 /run
 /NativeUtils/zig-out
 /NativeUtils/.zig-cache
+.zig-cache

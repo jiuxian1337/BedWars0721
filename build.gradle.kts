@@ -21,6 +21,7 @@ dependencies {
     compileOnly("org.spongepowered:configurate-yaml:4.2.0")
     implementation("com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT")
     compileOnly("org.ow2.asm:asm:9.10.1")
+    compileOnly("org.ow2.asm:asm-tree:9.10.1")
 }
 
 java {

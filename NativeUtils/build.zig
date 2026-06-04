@@ -2,13 +2,12 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const targets: []const struct { triple: []const u8, dir: []const u8 } = &.{
-        .{ .triple = "x86_64-windows",     .dir = "windowsx64" },
-        .{ .triple = "x86-windows",         .dir = "windowsx86" },
-        .{ .triple = "aarch64-windows",     .dir = "windowsarm64" },
-        .{ .triple = "x86_64-linux-gnu",    .dir = "linuxx64" },
-        .{ .triple = "x86-linux-gnu",       .dir = "linuxx86" },
-        .{ .triple = "aarch64-linux-gnu",   .dir = "linuxarm64" },
-        .{ .triple = "arm-linux-gnueabihf", .dir = "linuxarmv7" },
+        .{ .triple = "x86_64-windows",     .dir = "x86_64-windows" },
+        .{ .triple = "x86-windows",         .dir = "x86-windows" },
+        .{ .triple = "aarch64-windows",     .dir = "aarch64-windows" },
+        .{ .triple = "x86_64-linux-gnu",    .dir = "x86_64-linux-gnu" },
+        .{ .triple = "x86-linux-gnu",       .dir = "x86-linux-gnu" },
+        .{ .triple = "aarch64-linux-gnu",   .dir = "aarch64-linux-gnu" },
     };
 
     const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseFast });
