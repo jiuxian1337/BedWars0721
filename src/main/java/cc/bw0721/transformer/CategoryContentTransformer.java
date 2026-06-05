@@ -150,7 +150,10 @@ public class CategoryContentTransformer extends ASMTransformer {
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookCalculateMoney";
                     } else if (m.name.equals("getCurrencyColor")) {
-                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        AbstractInsnNode prev = insn.getPrevious();
+                        if (prev != null && prev.getOpcode() == Opcodes.INVOKEINTERFACE) {
+                            method.instructions.insertBefore(prev, new VarInsnNode(Opcodes.ALOAD, 1));
+                        }
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookGetCurrencyColor";
                         m.desc = "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;)Lorg/bukkit/ChatColor;";
