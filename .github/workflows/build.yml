@@ -31,4 +31,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: BedWars0721
-          path: build/libs/BedWars0721-*-all.jar
+          path: build/libs/BedWars1058-XPWars-*-all.jar
