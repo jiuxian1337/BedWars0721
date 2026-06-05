@@ -117,7 +117,9 @@ public class CategoryContentTransformer extends ASMTransformer {
     public void hookGetItemStack(MethodNode method) {
         int getPriceCount = 0;
 
-        for (AbstractInsnNode insn : method.instructions) {
+        for (int i = 0; i < method.instructions.size(); i++) {
+            AbstractInsnNode insn = method.instructions.get(i);
+
             if (insn.getOpcode() == Opcodes.INVOKEINTERFACE) {
                 MethodInsnNode m = (MethodInsnNode) insn;
                 if (m.name.equals("getPrice") && m.owner.equals("com/andrei1058/bedwars/api/arena/shop/IContentTier")) {
@@ -131,7 +133,8 @@ public class CategoryContentTransformer extends ASMTransformer {
                         AbstractInsnNode next = insn.getNext();
                         if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
                             MethodInsnNode nextM = (MethodInsnNode) next;
-                            if (nextM.name.equals("valueOf") && nextM.owner.equals("java/lang/String")) {
+                            if (nextM.name.equals("valueOf") && nextM.owner.equals("java/lang/String")
+                                && nextM.desc.equals("(I)Ljava/lang/String;")) {
                                 method.instructions.remove(nextM);
                             }
                         }
@@ -141,9 +144,10 @@ public class CategoryContentTransformer extends ASMTransformer {
 
             if (insn.getOpcode() == Opcodes.INVOKESTATIC) {
                 MethodInsnNode m = (MethodInsnNode) insn;
-                if (m.owner.equals("java/lang/String") && m.name.equals("valueOf")) {
+                if (m.owner.equals("java/lang/String") && m.name.equals("valueOf")
+                    && m.desc.equals("(Ljava/lang/Object;)Ljava/lang/String;")) {
                     AbstractInsnNode prev = insn.getPrevious();
-                    if (prev != null && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 11) {
+                    if (prev instanceof VarInsnNode && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 11) {
                         method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookGetCurrencyColor";
@@ -159,7 +163,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                         if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
                             MethodInsnNode nextM = (MethodInsnNode) next;
                             if (nextM.name.equals("getMsg") && nextM.owner.equals("com/andrei1058/bedwars/api/language/Language")) {
-                                method.instructions.remove(next);
+                                method.instructions.remove(nextM);
                             }
                         }
                     } else if (m.name.equals("calculateMoney")) {
