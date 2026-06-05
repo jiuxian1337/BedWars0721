@@ -148,7 +148,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                     && m.desc.equals("(Ljava/lang/Object;)Ljava/lang/String;")) {
                     AbstractInsnNode prev = insn.getPrevious();
                     if (prev instanceof VarInsnNode && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 11) {
-                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        method.instructions.insertBefore(prev, new VarInsnNode(Opcodes.ALOAD, 1));
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookGetCurrencyColor";
                         m.desc = "(Lorg/bukkit/entity/Player;Ljava/lang/Object;)Ljava/lang/String;";
@@ -177,7 +177,7 @@ public class CategoryContentTransformer extends ASMTransformer {
 
     public static int hookCalculateMoney(Player player, Material currency) {
         IArena arena = Arena.getArenaByPlayer(player);
-        boolean xpArena = arena != null && XPUtils.isXPArena(arena.getArenaName());
+        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
         if (xpArena) {
             int exp = XPUtils.getExp(currency);
             if (exp > 0) {
@@ -193,7 +193,7 @@ public class CategoryContentTransformer extends ASMTransformer {
     public static void hookCantBuy(Player player, IContentTier ct, int money) {
         String currency = Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
         IArena arena = Arena.getArenaByPlayer(player);
-        if (arena != null && XPUtils.isXPArena(arena.getArenaName())) currency = BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+        if (XPUtils.isXPArena(arena.getArenaName())) currency = BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
         player.sendMessage(Language.getMsg(player, Messages.SHOP_INSUFFICIENT_MONEY)
             .replace("{currency}", currency)
             .replace("{amount}", String.valueOf(ct.getPrice() - money)));
@@ -201,7 +201,7 @@ public class CategoryContentTransformer extends ASMTransformer {
 
     public static String hookGetPrice(Player player, IContentTier ct) {
         IArena arena = Arena.getArenaByPlayer(player);
-        if (arena != null && XPUtils.isXPArena(arena.getArenaName())) {
+        if (XPUtils.isXPArena(arena.getArenaName())) {
             int exp = XPUtils.getExp(ct.getCurrency());
             if (exp > 0) {
                 return String.valueOf(exp * ct.getPrice());
@@ -212,7 +212,7 @@ public class CategoryContentTransformer extends ASMTransformer {
 
     public static String hookGetTranslatedCurrency(Player player, IContentTier ct) {
         IArena arena = Arena.getArenaByPlayer(player);
-        if (arena != null && XPUtils.isXPArena(arena.getArenaName())) {
+        if (XPUtils.isXPArena(arena.getArenaName())) {
             return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
         }
         return Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
@@ -220,15 +220,15 @@ public class CategoryContentTransformer extends ASMTransformer {
 
     public static String hookGetCurrencyColor(Player player, Object color) {
         IArena arena = Arena.getArenaByPlayer(player);
-        if (arena != null && XPUtils.isXPArena(arena.getArenaName())) {
-            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor();
+        if (XPUtils.isXPArena(arena.getArenaName())) {
+            return ChatColor.getByChar(BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()).toString();
         }
         return String.valueOf(color);
     }
 
     public static void hookTakeMoney(Player player, Material currency, int amount) {
         IArena arena = Arena.getArenaByPlayer(player);
-        boolean xpArena = arena != null && XPUtils.isXPArena(arena.getArenaName());
+        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
         if (xpArena) {
             int exp = XPUtils.getExp(currency);
             if (exp > 0) {
