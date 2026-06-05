@@ -1,1 +1,1 @@
-rootProject.name = "BedWars1058-XPWars"
+rootProject.name = "BedWars0721"

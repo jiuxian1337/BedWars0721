@@ -1,17 +1,17 @@
-name: BedWars1058-XPWars
+name: BedWars0721
 version: '${version}'
-main: cc.xpWars.XPWars
+main: cc.bw0721.BedWars0721
 api-version: '1.13'
 depend: [BedWars1058]
 
 commands:
-  xpwars:
-    permission: xpwars.admin
+  bw0721:
+    permission: bw0721.admin
 
 permissions:
-  xpwars.admin:
+  bw0721.admin:
     default: op
-  xpwars.command.reload:
+  bw0721.command.reload:
     default: op
-  xpwars.command.addarena:
+  bw0721.command.addarena:
     default: op

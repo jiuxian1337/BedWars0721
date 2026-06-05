@@ -1,4 +1,4 @@
-package cc.xpWars.utils.asm;
+package cc.bw0721.utils.asm;
 
 import org.jetbrains.annotations.NotNull;
 

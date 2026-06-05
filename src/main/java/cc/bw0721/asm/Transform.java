@@ -1,8 +1,8 @@
-package cc.xpWars.asm;
+package cc.bw0721.asm;
 
-import cc.xpWars.asm.transformer.Operation;
-import cc.xpWars.utils.NativeUtils;
-import cc.xpWars.utils.asm.ASMUtils;
+import cc.bw0721.asm.transformer.Operation;
+import cc.bw0721.utils.NativeUtils;
+import cc.bw0721.utils.asm.ASMUtils;
 import lombok.Getter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;

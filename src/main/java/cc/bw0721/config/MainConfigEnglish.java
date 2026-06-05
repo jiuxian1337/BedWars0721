@@ -1,4 +1,4 @@
-package cc.xpWars.config;
+package cc.bw0721.config;
 
 import com.andrei1058.bedwars.BedWars;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.*;
 public class MainConfigEnglish implements MainConfig {
     @Setting("messages.prefix")
     @Comment("Plugin message prefix")
-    private String prefix = "&7[&bXPWars&7] &r";
+    private String prefix = "&7[&bBedWars0721&7] &r";
 
     @Setting("messages.level")
     @Comment("Currency display text in the XP mode shop")

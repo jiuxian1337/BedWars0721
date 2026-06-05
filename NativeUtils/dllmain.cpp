@@ -29,7 +29,7 @@ void ProcessHookedClassFile(jvmtiEnv *jvmti_env, JNIEnv *jni_env,
     jbyteArray old = jni_env->NewByteArray(its_data_len);
     jni_env->SetByteArrayRegion(old, 0, its_data_len, (jbyte *) its_data);
 
-    jclass ModifierClass = LoadClass(jni_env, "cc.xpWars.utils.NativeUtils", saved_classloader);
+    jclass ModifierClass = LoadClass(jni_env, "cc.bw0721.utils.NativeUtils", saved_classloader);
     jmethodID ModifierMethod = jni_env->GetStaticMethodID(ModifierClass, "a",
                                                           "(Ljava/lang/Class;Ljava/lang/ClassLoader;Ljava/lang/String;[B)[B");
     jbyteArray result = (jbyteArray) jni_env->CallStaticObjectMethod(ModifierClass, ModifierMethod, captured_class,
@@ -75,12 +75,12 @@ void saveClassLoader(JNIEnv *jni_env, jclass caller) {
 }
 
 extern "C" {
-JNIEXPORT void JNICALL Java_cc_xpWars_utils_NativeUtils_a(JNIEnv *jni_env, jclass caller, jclass arg1) {
+JNIEXPORT void JNICALL Java_cc_bw0721_utils_NativeUtils_a(JNIEnv *jni_env, jclass caller, jclass arg1) {
     saveClassLoader(jni_env, caller);
     jvmti_env_global->RetransformClasses(1, &arg1);
 }
 
-JNIEXPORT void JNICALL Java_cc_xpWars_utils_NativeUtils_b(JNIEnv *jni_env, jclass caller, jclass target, jbyteArray data) {
+JNIEXPORT void JNICALL Java_cc_bw0721_utils_NativeUtils_b(JNIEnv *jni_env, jclass caller, jclass target, jbyteArray data) {
     saveClassLoader(jni_env, caller);
     jvmtiClassDefinition classDef;
     classDef.klass = target;

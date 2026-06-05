@@ -1,20 +1,20 @@
-package cc.xpWars.command.impl;
+package cc.bw0721.command.impl;
 
-import cc.xpWars.XPWars;
-import cc.xpWars.command.SubCommand;
-import cc.xpWars.config.ConfigManager;
+import cc.bw0721.BedWars0721;
+import cc.bw0721.command.SubCommand;
+import cc.bw0721.config.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand extends SubCommand {
 
     public ReloadCommand() {
-        super("reload", "xpwars.command.reload");
+        super("reload", "bw0721.command.reload");
     }
 
     @Override
     public boolean execute(String[] args, CommandSender sender) {
-        ConfigManager configManager = XPWars.getInstance().getConfigManager();
+        ConfigManager configManager = BedWars0721.getInstance().getConfigManager();
         configManager.init();
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMainConfig().getPrefix() + "Config reloaded."));
         return true;

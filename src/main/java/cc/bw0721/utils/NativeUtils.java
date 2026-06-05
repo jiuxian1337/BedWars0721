@@ -1,8 +1,8 @@
-package cc.xpWars.utils;
+package cc.bw0721.utils;
 
-import cc.xpWars.XPWars;
-import cc.xpWars.asm.ASMTransformer;
-import cc.xpWars.asm.TransformerManager;
+import cc.bw0721.BedWars0721;
+import cc.bw0721.asm.ASMTransformer;
+import cc.bw0721.asm.TransformerManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -20,7 +20,7 @@ public class NativeUtils {
             loadNativeLibrary();
             loaded = true;
         } catch (Exception e) {
-            XPWars.getInstance().getLogger().warning("Failed to load native library: " + e.getMessage());
+            BedWars0721.getInstance().getLogger().warning("Failed to load native library: " + e.getMessage());
         }
     }
 

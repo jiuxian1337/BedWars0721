@@ -1,4 +1,4 @@
-package cc.xpWars.utils.asm;
+package cc.bw0721.utils.asm;
 
 /*
  * 一个简单的asm注入框架

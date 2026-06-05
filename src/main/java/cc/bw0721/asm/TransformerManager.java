@@ -1,8 +1,7 @@
-package cc.xpWars.asm;
+package cc.bw0721.asm;
 
-import cc.xpWars.transformer.OreGeneratorTransformer;
-import cc.xpWars.utils.NativeUtils;
-import org.objectweb.asm.Opcodes;
+import cc.bw0721.transformer.OreGeneratorTransformer;
+import cc.bw0721.utils.NativeUtils;
 
 import java.io.File;
 import java.nio.file.Files;

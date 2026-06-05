@@ -1,11 +1,8 @@
-package cc.xpWars.listener;
+package cc.bw0721.listener;
 
-import cc.xpWars.utils.XPUtils;
-import com.andrei1058.bedwars.BedWars;
+import cc.bw0721.utils.XPUtils;
 import com.andrei1058.bedwars.api.arena.IArena;
-import com.andrei1058.bedwars.api.configuration.ConfigPath;
 import com.andrei1058.bedwars.arena.Arena;
-import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

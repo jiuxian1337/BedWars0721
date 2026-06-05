@@ -1,9 +1,8 @@
-package cc.xpWars.command;
+package cc.bw0721.command;
 
-import cc.xpWars.XPWars;
-import cc.xpWars.command.impl.AddArenaCommand;
-import cc.xpWars.command.impl.ReloadCommand;
-import com.andrei1058.bedwars.BedWars;
+import cc.bw0721.BedWars0721;
+import cc.bw0721.command.impl.AddArenaCommand;
+import cc.bw0721.command.impl.ReloadCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -40,7 +39,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         if (!subCommand.hasPermission(sender)) {
-            String prefix = XPWars.getInstance().getConfigManager().getMainConfig().getPrefix();
+            String prefix = BedWars0721.getInstance().getConfigManager().getMainConfig().getPrefix();
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + ChatColor.RED + "No permission."));
             return true;
         }

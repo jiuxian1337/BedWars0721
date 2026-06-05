@@ -1,4 +1,4 @@
-package cc.xpWars.asm;
+package cc.bw0721.asm;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

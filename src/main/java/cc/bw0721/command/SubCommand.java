@@ -1,4 +1,4 @@
-package cc.xpWars.command;
+package cc.bw0721.command;
 
 import com.andrei1058.bedwars.api.BedWars;
 import lombok.AllArgsConstructor;
@@ -28,6 +28,6 @@ public class SubCommand {
     }
 
     public boolean hasPermission(CommandSender p) {
-        return permission.isEmpty() || p.hasPermission("bw.*") || p.hasPermission("xpwars.*") || p.hasPermission(permission);
+        return permission.isEmpty() || p.hasPermission("bw.*") || p.hasPermission("bw0721.*") || p.hasPermission(permission);
     }
 }

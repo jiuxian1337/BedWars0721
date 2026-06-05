@@ -53,7 +53,7 @@ tasks {
     }
 
     shadowJar {
-        relocate("com.alessiodp.libby", "cc.xpWars.libby")
+        relocate("com.alessiodp.libby", "cc.bw0721.libby")
     }
 
     runServer {

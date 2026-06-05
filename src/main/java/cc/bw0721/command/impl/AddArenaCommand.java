@@ -1,8 +1,8 @@
-package cc.xpWars.command.impl;
+package cc.bw0721.command.impl;
 
-import cc.xpWars.XPWars;
-import cc.xpWars.command.SubCommand;
-import cc.xpWars.config.ConfigManager;
+import cc.bw0721.BedWars0721;
+import cc.bw0721.command.SubCommand;
+import cc.bw0721.config.ConfigManager;
 import com.andrei1058.bedwars.BedWars;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -15,14 +15,14 @@ import java.util.Objects;
 public class AddArenaCommand extends SubCommand {
 
     public AddArenaCommand() {
-        super("addarena", "xpwars.command.addarena");
+        super("addarena", "bw0721.command.addarena");
     }
 
     @Override
     public boolean execute(String[] args, CommandSender sender) {
-        ConfigManager configManager = XPWars.getInstance().getConfigManager();
+        ConfigManager configManager = BedWars0721.getInstance().getConfigManager();
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMainConfig().getPrefix() + ChatColor.RED + "Usage: /xpwars addarena <arena>"));
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMainConfig().getPrefix() + ChatColor.RED + "Usage: /bw0721 addarena <arena>"));
             return true;
         }
         if (configManager.getMainConfig().getXpArenas().contains(args[0])) {

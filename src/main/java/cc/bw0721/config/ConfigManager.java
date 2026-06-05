@@ -1,6 +1,6 @@
-package cc.xpWars.config;
+package cc.bw0721.config;
 
-import cc.xpWars.XPWars;
+import cc.bw0721.BedWars0721;
 import lombok.Getter;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.yaml.NodeStyle;
@@ -25,7 +25,7 @@ public final class ConfigManager {
     }
 
     public void init() {
-        Path configFile = XPWars.getInstance().getDataFolder().toPath().resolve("config.yml");
+        Path configFile = BedWars0721.getInstance().getDataFolder().toPath().resolve("config.yml");
 
         this.loader = YamlConfigurationLoader.builder()
                 .path(configFile)

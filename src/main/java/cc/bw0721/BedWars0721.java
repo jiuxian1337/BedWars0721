@@ -1,9 +1,9 @@
-package cc.xpWars;
+package cc.bw0721;
 
-import cc.xpWars.asm.TransformerManager;
-import cc.xpWars.command.CommandManager;
-import cc.xpWars.config.ConfigManager;
-import cc.xpWars.listener.PickupItemListener;
+import cc.bw0721.asm.TransformerManager;
+import cc.bw0721.command.CommandManager;
+import cc.bw0721.config.ConfigManager;
+import cc.bw0721.listener.PickupItemListener;
 import com.alessiodp.libby.Library;
 import com.alessiodp.libby.BukkitLibraryManager;
 import lombok.Getter;
@@ -13,13 +13,13 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
-public final class XPWars extends JavaPlugin {
+public final class BedWars0721 extends JavaPlugin {
 
     private final String pluginVersion = getDescription().getVersion();
     private final String pluginName = getDescription().getName();
 
     @Getter
-    private static XPWars instance;
+    private static BedWars0721 instance;
     private ConfigManager configManager;
 
     @Override
@@ -58,8 +58,8 @@ public final class XPWars extends JavaPlugin {
             configManager.init();
 
             CommandManager commandManager = new CommandManager();
-            getCommand("xpwars").setExecutor(commandManager);
-            getCommand("xpwars").setTabCompleter(commandManager);
+            getCommand("bw0721").setExecutor(commandManager);
+            getCommand("bw0721").setTabCompleter(commandManager);
             TransformerManager.init();
             getServer().getPluginManager().registerEvents(new PickupItemListener(), this);
             printStartupMessage("&fBedWars1058 &7found and hooked successfully.");

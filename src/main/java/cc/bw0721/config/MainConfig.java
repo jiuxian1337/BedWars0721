@@ -1,4 +1,4 @@
-package cc.xpWars.config;
+package cc.bw0721.config;
 
 import java.util.List;
 import java.util.Map;

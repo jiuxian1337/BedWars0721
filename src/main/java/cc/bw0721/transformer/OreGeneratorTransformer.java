@@ -1,15 +1,14 @@
-package cc.xpWars.transformer;
+package cc.bw0721.transformer;
 
-import cc.xpWars.asm.ASMTransformer;
-import cc.xpWars.utils.ReflectionUtils;
-import cc.xpWars.utils.XPUtils;
+import cc.bw0721.asm.ASMTransformer;
+import cc.bw0721.utils.ReflectionUtils;
+import cc.bw0721.utils.XPUtils;
 import com.andrei1058.bedwars.BedWars;
 import com.andrei1058.bedwars.api.arena.IArena;
 import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.arena.OreGenerator;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.objectweb.asm.Opcodes;
@@ -51,7 +50,7 @@ public class OreGeneratorTransformer extends ASMTransformer {
             call.add(new VarInsnNode(Opcodes.ALOAD, 1));
             call.add(new MethodInsnNode(
                 Opcodes.INVOKESTATIC,
-                "cc/xpWars/transformer/OreGeneratorTransformer",
+                    "cc/bw0721/transformer/OreGeneratorTransformer",
                 "handleTeamSplit",
                 "(Lcom/andrei1058/bedwars/arena/OreGenerator;[Ljava/lang/Object;)V",
                 false

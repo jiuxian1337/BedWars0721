@@ -1,7 +1,7 @@
-package cc.xpWars.utils;
+package cc.bw0721.utils;
 
-import cc.xpWars.XPWars;
-import cc.xpWars.config.MainConfig;
+import cc.bw0721.BedWars0721;
+import cc.bw0721.config.MainConfig;
 import com.andrei1058.bedwars.BedWars;
 import lombok.Getter;
 import org.bukkit.Material;
@@ -15,13 +15,13 @@ public class XPUtils {
     private final static Sound sound = Sound.valueOf(BedWars.getForCurrentVersion("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP"));
 
     public static int getLevel(Material material) {
-        MainConfig mainConfig = XPWars.getInstance().getConfigManager().getMainConfig();
+        MainConfig mainConfig = BedWars0721.getInstance().getConfigManager().getMainConfig();
         Map<String, Integer> currency = mainConfig.getCurrency();
         return currency.getOrDefault(material.name(), 0);
     }
 
     public static boolean isXPArena(String arena) {
-        MainConfig mainConfig = XPWars.getInstance().getConfigManager().getMainConfig();
+        MainConfig mainConfig = BedWars0721.getInstance().getConfigManager().getMainConfig();
         return mainConfig.getXpArenas().contains(arena);
     }
 
