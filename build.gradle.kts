@@ -53,7 +53,12 @@ tasks {
     }
 
     shadowJar {
+        archiveClassifier.set("")
         relocate("com.alessiodp.libby", "cc.bw0721.libby")
+    }
+
+    assemble {
+        dependsOn(shadowJar)
     }
 
     runServer {
