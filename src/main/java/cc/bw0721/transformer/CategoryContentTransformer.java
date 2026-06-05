@@ -9,6 +9,7 @@ import com.andrei1058.bedwars.api.language.Language;
 import com.andrei1058.bedwars.api.language.Messages;
 import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.shop.main.CategoryContent;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.objectweb.asm.Opcodes;
@@ -112,6 +113,49 @@ public class CategoryContentTransformer extends ASMTransformer {
         }
     }
 
+    @Inject(method = "getItemStack", desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/shop/ShopCache;)Lorg/bukkit/inventory/ItemStack;")
+    public void hookGetItemStack(MethodNode method) {
+        int getPriceCount = 0;
+
+        for (AbstractInsnNode insn : method.instructions) {
+            if (insn.getOpcode() == Opcodes.INVOKEINTERFACE) {
+                MethodInsnNode m = (MethodInsnNode) insn;
+                if (m.name.equals("getPrice") && m.owner.equals("com/andrei1058/bedwars/api/arena/shop/IContentTier")) {
+                    getPriceCount++;
+                    if (getPriceCount == 2) {
+                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        m.setOpcode(Opcodes.INVOKESTATIC);
+                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.name = "hookGetPrice";
+                        m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)I";
+                    }
+                }
+            }
+
+            if (insn.getOpcode() == Opcodes.INVOKESTATIC) {
+                MethodInsnNode m = (MethodInsnNode) insn;
+                if (m.owner.equals("com/andrei1058/bedwars/shop/main/CategoryContent")) {
+                    if (m.name.equals("getCurrencyMsgPath")) {
+                        m.name = "hookGetTranslatedCurrency";
+                        m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
+                        AbstractInsnNode next = insn.getNext();
+                        if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
+                            MethodInsnNode nextM = (MethodInsnNode) next;
+                            if (nextM.name.equals("getMsg") && nextM.owner.equals("com/andrei1058/bedwars/api/language/Language")) {
+                                method.instructions.remove(next);
+                            }
+                        }
+                    } else if (m.name.equals("getCurrencyColor")) {
+                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.name = "hookGetCurrencyColor";
+                        m.desc = "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;)Lorg/bukkit/ChatColor;";
+                    }
+                }
+            }
+        }
+    }
+
     public static int hookCalculateMoney(Player player, Material currency) {
         IArena arena = Arena.getArenaByPlayer(player);
         boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
@@ -134,6 +178,34 @@ public class CategoryContentTransformer extends ASMTransformer {
         player.sendMessage(Language.getMsg(player, Messages.SHOP_INSUFFICIENT_MONEY)
             .replace("{currency}", currency)
             .replace("{amount}", String.valueOf(ct.getPrice() - money)));
+    }
+
+    public static int hookGetPrice(Player player, IContentTier ct) {
+        IArena arena = Arena.getArenaByPlayer(player);
+        if (XPUtils.isXPArena(arena.getArenaName())) {
+            int exp = XPUtils.getExp(ct.getCurrency());
+            if (exp > 0) {
+                return exp;
+            }
+        }
+        return ct.getPrice();
+    }
+
+    public static String hookGetTranslatedCurrency(Player player, IContentTier ct) {
+        IArena arena = Arena.getArenaByPlayer(player);
+        if (XPUtils.isXPArena(arena.getArenaName())) {
+            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()
+                + BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+        }
+        return Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
+    }
+
+    public static ChatColor hookGetCurrencyColor(Player player, Material currency) {
+        IArena arena = Arena.getArenaByPlayer(player);
+        if (XPUtils.isXPArena(arena.getArenaName())) {
+            return ChatColor.WHITE;
+        }
+        return CategoryContent.getCurrencyColor(currency);
     }
 
     public static void hookTakeMoney(Player player, Material currency, int amount) {
