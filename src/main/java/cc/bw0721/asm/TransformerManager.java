@@ -1,5 +1,6 @@
 package cc.bw0721.asm;
 
+import cc.bw0721.transformer.CategoryContentTransformer;
 import cc.bw0721.transformer.OreGeneratorTransformer;
 import cc.bw0721.utils.NativeUtils;
 
@@ -31,6 +32,7 @@ public class TransformerManager {
         try {
 //            在这里注册你的变形金刚
             transform.addTransformer(new OreGeneratorTransformer());
+            transform.addTransformer(new CategoryContentTransformer());
             for (ASMTransformer asmTransformer : TransformerManager.transform.transformers) {
                 NativeUtils.a(asmTransformer.getTarget());
             }
