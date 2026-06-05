@@ -10,7 +10,7 @@ pub fn build(b: *std.Build) void {
         .{ .triple = "aarch64-linux-gnu",   .dir = "aarch64-linux-gnu" },
     };
 
-    const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseFast });
+    const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseSmall });
     const all_step = b.step("all", "Build for all platforms");
 
     for (targets) |t| {
