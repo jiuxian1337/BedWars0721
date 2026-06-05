@@ -200,7 +200,7 @@ public class CategoryContentTransformer extends ASMTransformer {
         if (XPUtils.isXPArena(arena.getArenaName())) {
             int exp = XPUtils.getExp(ct.getCurrency());
             if (exp > 0) {
-                return String.valueOf(exp);
+                return String.valueOf(exp * ct.getPrice());
             }
         }
         return String.valueOf(ct.getPrice());
