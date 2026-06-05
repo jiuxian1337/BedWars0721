@@ -9,6 +9,7 @@ import com.andrei1058.bedwars.api.language.Language;
 import com.andrei1058.bedwars.api.language.Messages;
 import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.shop.main.CategoryContent;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.objectweb.asm.Opcodes;
@@ -122,14 +123,16 @@ public class CategoryContentTransformer extends ASMTransformer {
                 if (m.name.equals("getPrice") && m.owner.equals("com/andrei1058/bedwars/api/arena/shop/IContentTier")) {
                     getPriceCount++;
                     if (getPriceCount == 2) {
+                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        m.setOpcode(Opcodes.INVOKESTATIC);
+                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.name = "hookGetPrice";
+                        m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
                         AbstractInsnNode next = insn.getNext();
                         if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
                             MethodInsnNode nextM = (MethodInsnNode) next;
                             if (nextM.name.equals("valueOf") && nextM.owner.equals("java/lang/String")) {
-                                method.instructions.insertBefore(nextM, new VarInsnNode(Opcodes.ALOAD, 1));
-                                nextM.owner = "cc/bw0721/transformer/CategoryContentTransformer";
-                                nextM.name = "hookGetPrice";
-                                nextM.desc = "(Lorg/bukkit/entity/Player;I)Ljava/lang/String;";
+                                method.instructions.remove(nextM);
                             }
                         }
                     }
@@ -192,19 +195,21 @@ public class CategoryContentTransformer extends ASMTransformer {
             .replace("{amount}", String.valueOf(ct.getPrice() - money)));
     }
 
-    public static String hookGetPrice(Player player, int price) {
+    public static String hookGetPrice(Player player, IContentTier ct) {
         IArena arena = Arena.getArenaByPlayer(player);
         if (XPUtils.isXPArena(arena.getArenaName())) {
-            return String.valueOf(price);
+            int exp = XPUtils.getExp(ct.getCurrency());
+            if (exp > 0) {
+                return String.valueOf(exp);
+            }
         }
-        return String.valueOf(price);
+        return String.valueOf(ct.getPrice());
     }
 
     public static String hookGetTranslatedCurrency(Player player, IContentTier ct) {
         IArena arena = Arena.getArenaByPlayer(player);
         if (XPUtils.isXPArena(arena.getArenaName())) {
-            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()
-                + BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
         }
         return Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
     }
@@ -212,7 +217,7 @@ public class CategoryContentTransformer extends ASMTransformer {
     public static String hookGetCurrencyColor(Player player, Object color) {
         IArena arena = Arena.getArenaByPlayer(player);
         if (XPUtils.isXPArena(arena.getArenaName())) {
-            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor();
+            return ChatColor.getByChar(BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()).toString();
         }
         return String.valueOf(color);
     }
