@@ -145,6 +145,9 @@ public class CategoryContentTransformer extends ASMTransformer {
                                 method.instructions.remove(next);
                             }
                         }
+                    } else if (m.name.equals("calculateMoney")) {
+                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.name = "hookCalculateMoney";
                     } else if (m.name.equals("getCurrencyColor")) {
                         method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
