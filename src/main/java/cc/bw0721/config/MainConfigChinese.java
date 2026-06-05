@@ -15,9 +15,9 @@ public class MainConfigChinese implements MainConfig {
     @Comment("插件消息前缀")
     private String prefix = "&7[&bBedWars0721&7] &r";
 
-    @Setting("messages.level")
+    @Setting("messages.experience")
     @Comment("经验模式商店中货币的文本")
-    private String level = "&f经验";
+    private String expMsg = "&f经验";
 
     @Setting("currency")
     @Comment("可转换成经验的货币")

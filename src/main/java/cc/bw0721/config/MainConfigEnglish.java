@@ -15,9 +15,9 @@ public class MainConfigEnglish implements MainConfig {
     @Comment("Plugin message prefix")
     private String prefix = "&7[&bBedWars0721&7] &r";
 
-    @Setting("messages.level")
+    @Setting("messages.experience")
     @Comment("Currency display text in the XP mode shop")
-    private String level = "&fExperience";
+    private String expMsg = "&fExperience";
 
     @Setting("currency")
     @Comment("Currencies convertible to XP. Key = material name, Value = XP amount")

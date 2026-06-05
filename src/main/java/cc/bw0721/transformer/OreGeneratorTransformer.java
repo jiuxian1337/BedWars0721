@@ -73,7 +73,7 @@ public class OreGeneratorTransformer extends ASMTransformer {
                 Player player = (Player)o;
                 ItemStack item = ((ItemStack) ReflectionUtils.getFieldValue(OreGenerator.class, "ore", generator)).clone();
 
-                int xp = XPUtils.getLevel(item.getType()) * item.getAmount();
+                int xp = XPUtils.getExp(item.getType()) * item.getAmount();
                 if (xpArena && xp != 0) {
                         player.playSound(player.getLocation(), XPUtils.getSound(), 0.6f, 1.3f);
                         player.setLevel(player.getLevel() + xp);

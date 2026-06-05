@@ -7,7 +7,7 @@ public interface MainConfig {
 
     String getPrefix();
 
-    String getLevel();
+    String getExpMsg();
 
     Map<String, Integer> getCurrency();
 

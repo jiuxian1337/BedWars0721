@@ -16,7 +16,7 @@ public class PickupItemListener implements Listener {
         IArena arena = Arena.getArenaByPlayer(player);
         if (arena == null || !XPUtils.isXPArena(arena.getArenaName()) || !arena.isPlayer(event.getPlayer()) || arena.isSpectator(event.getPlayer())) return;
         Item item = event.getItem();
-        int xp = XPUtils.getLevel(item.getItemStack().getType()) * item.getItemStack().getAmount();
+        int xp = XPUtils.getExp(item.getItemStack().getType()) * item.getItemStack().getAmount();
         if (xp != 0 && !event.isCancelled()){
             event.setCancelled(true);
             player.playSound(player.getLocation(), XPUtils.getSound(), 0.6f, 1.3f);
