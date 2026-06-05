@@ -1,9 +1,13 @@
 package cc.bw0721.transformer;
 
+import cc.bw0721.BedWars0721;
 import cc.bw0721.asm.ASMTransformer;
+import cc.bw0721.utils.XPUtils;
+import com.andrei1058.bedwars.api.arena.IArena;
 import com.andrei1058.bedwars.api.arena.shop.IContentTier;
 import com.andrei1058.bedwars.api.language.Language;
 import com.andrei1058.bedwars.api.language.Messages;
+import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.shop.main.CategoryContent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -67,10 +71,14 @@ public class CategoryContentTransformer extends ASMTransformer {
                     FieldInsnNode field = (FieldInsnNode) cur;
                     if (field.name.equals("SHOP_INSUFFICIENT_MONEY")) {
                         AbstractInsnNode prev = cur.getPrevious();
+                        int aloadCount = 0;
                         while (prev != null) {
                             if (prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 1) {
-                                start = prev;
-                                break;
+                                aloadCount++;
+                                if (aloadCount == 2) {
+                                    start = prev;
+                                    break;
+                                }
                             }
                             prev = prev.getPrevious();
                         }
@@ -105,16 +113,41 @@ public class CategoryContentTransformer extends ASMTransformer {
     }
 
     public static int hookCalculateMoney(Player player, Material currency) {
-        return CategoryContent.calculateMoney(player, currency);
+        IArena arena = Arena.getArenaByPlayer(player);
+        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
+        if (xpArena) {
+            int exp = XPUtils.getExp(currency);
+            if (exp > 0) {
+                return player.getLevel() / exp;
+            } else {
+                return CategoryContent.calculateMoney(player, currency);
+            }
+        } else {
+            return CategoryContent.calculateMoney(player, currency);
+        }
     }
 
     public static void hookCantBuy(Player player, IContentTier ct, int money) {
+        String currency = Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
+        IArena arena = Arena.getArenaByPlayer(player);
+        if (XPUtils.isXPArena(arena.getArenaName())) currency = BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
         player.sendMessage(Language.getMsg(player, Messages.SHOP_INSUFFICIENT_MONEY)
-            .replace("{currency}", Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct)))
+            .replace("{currency}", currency)
             .replace("{amount}", String.valueOf(ct.getPrice() - money)));
     }
 
     public static void hookTakeMoney(Player player, Material currency, int amount) {
-        CategoryContent.takeMoney(player, currency, amount);
+        IArena arena = Arena.getArenaByPlayer(player);
+        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
+        if (xpArena) {
+            int exp = XPUtils.getExp(currency);
+            if (exp > 0) {
+                player.setLevel(player.getLevel() - exp * amount);
+            } else {
+                CategoryContent.takeMoney(player, currency, amount);
+            }
+        } else {
+            CategoryContent.takeMoney(player, currency, amount);
+        }
     }
 }
