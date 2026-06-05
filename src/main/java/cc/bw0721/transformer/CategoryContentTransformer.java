@@ -136,6 +136,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                 MethodInsnNode m = (MethodInsnNode) insn;
                 if (m.owner.equals("com/andrei1058/bedwars/shop/main/CategoryContent")) {
                     if (m.name.equals("getCurrencyMsgPath")) {
+                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookGetTranslatedCurrency";
                         m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
                         AbstractInsnNode next = insn.getNext();
@@ -188,7 +189,7 @@ public class CategoryContentTransformer extends ASMTransformer {
         if (XPUtils.isXPArena(arena.getArenaName())) {
             int exp = XPUtils.getExp(ct.getCurrency());
             if (exp > 0) {
-                return exp;
+                return exp * ct.getPrice();
             }
         }
         return ct.getPrice();
@@ -197,8 +198,7 @@ public class CategoryContentTransformer extends ASMTransformer {
     public static String hookGetTranslatedCurrency(Player player, IContentTier ct) {
         IArena arena = Arena.getArenaByPlayer(player);
         if (XPUtils.isXPArena(arena.getArenaName())) {
-            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()
-                + BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
         }
         return Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
     }
@@ -206,7 +206,7 @@ public class CategoryContentTransformer extends ASMTransformer {
     public static ChatColor hookGetCurrencyColor(Player player, Material currency) {
         IArena arena = Arena.getArenaByPlayer(player);
         if (XPUtils.isXPArena(arena.getArenaName())) {
-            return ChatColor.WHITE;
+            return ChatColor.getByChar(BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor());
         }
         return CategoryContent.getCurrencyColor(currency);
     }
