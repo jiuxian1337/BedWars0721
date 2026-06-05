@@ -121,7 +121,7 @@ See `OreGeneratorTransformer` for example: replaces the `if (players.length > 1)
 
 ### Issue tracker
 
-Issues live as **GitHub issues** on `jiuxian1337/BedWars1058-XPWars` (using `gh` CLI). See `docs/agents/issue-tracker.md`.
+Issues live as **GitHub issues** on `jiuxian1337/BedWars0721` (using `gh` CLI). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

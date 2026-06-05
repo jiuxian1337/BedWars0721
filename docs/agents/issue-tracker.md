@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues and PRDs for this repo live as GitHub issues on `jiuxian1337/BedWars1058-XPWars`. Use the `gh` CLI for all operations.
+Issues and PRDs for this repo live as GitHub issues on `jiuxian1337/BedWars0721`. Use the `gh` CLI for all operations.
 
 ## Conventions
 
