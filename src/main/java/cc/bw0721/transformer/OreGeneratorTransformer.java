@@ -12,6 +12,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 public class OreGeneratorTransformer extends ASMTransformer {
@@ -50,7 +51,7 @@ public class OreGeneratorTransformer extends ASMTransformer {
             call.add(new VarInsnNode(Opcodes.ALOAD, 1));
             call.add(new MethodInsnNode(
                 Opcodes.INVOKESTATIC,
-                    "cc/bw0721/transformer/OreGeneratorTransformer",
+                    Type.getInternalName(OreGeneratorTransformer.class),
                 "handleTeamSplit",
                 "(Lcom/andrei1058/bedwars/arena/OreGenerator;[Ljava/lang/Object;)V",
                 false

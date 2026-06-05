@@ -14,6 +14,9 @@ public class XPUtils {
     @Getter
     private final static Sound sound = Sound.valueOf(BedWars.getForCurrentVersion("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP"));
 
+    @Getter
+    private final static Material expBottleMaterial = Material.valueOf(BedWars.getForCurrentVersion("EXP_BOTTLE", "EXP_BOTTLE", "EXPERIENCE_BOTTLE"));
+
     public static int getExp(Material material) {
         MainConfig mainConfig = BedWars0721.getInstance().getConfigManager().getMainConfig();
         Map<String, Integer> currency = mainConfig.getCurrency();

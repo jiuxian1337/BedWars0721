@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 public class CategoryContentTransformer extends ASMTransformer {
@@ -27,10 +28,10 @@ public class CategoryContentTransformer extends ASMTransformer {
                 MethodInsnNode method = (MethodInsnNode) insn;
                 if (method.owner.equals("com/andrei1058/bedwars/shop/main/CategoryContent")) {
                     if (method.name.equals("calculateMoney")) {
-                        method.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        method.owner = Type.getInternalName(CategoryContentTransformer.class);
                         method.name = "hookCalculateMoney";
                     } else if (method.name.equals("takeMoney")) {
-                        method.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        method.owner = Type.getInternalName(CategoryContentTransformer.class);
                         method.name = "hookTakeMoney";
                     }
                 }
@@ -95,7 +96,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                 replacement.add(new VarInsnNode(Opcodes.ALOAD, 4));
                 replacement.add(new VarInsnNode(Opcodes.ILOAD, 5));
                 replacement.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                    "cc/bw0721/transformer/CategoryContentTransformer",
+                    Type.getInternalName(CategoryContentTransformer.class),
                     "hookCantBuy",
                     "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;I)V",
                     false));
@@ -127,7 +128,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                     if (getPriceCount == 2) {
                         method.instructions.insertBefore(insn.getPrevious(), new VarInsnNode(Opcodes.ALOAD, 1));
                         m.setOpcode(Opcodes.INVOKESTATIC);
-                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.owner = Type.getInternalName(CategoryContentTransformer.class);
                         m.name = "hookGetPrice";
                         m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
                         m.itf = false;
@@ -150,14 +151,14 @@ public class CategoryContentTransformer extends ASMTransformer {
                     AbstractInsnNode prev = insn.getPrevious();
                     if (prev instanceof VarInsnNode && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 11) {
                         method.instructions.insertBefore(prev, new VarInsnNode(Opcodes.ALOAD, 1));
-                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.owner = Type.getInternalName(CategoryContentTransformer.class);
                         m.name = "hookGetCurrencyColor";
                         m.desc = "(Lorg/bukkit/entity/Player;Ljava/lang/Object;)Ljava/lang/String;";
                     }
                 }
                 if (m.owner.equals("com/andrei1058/bedwars/shop/main/CategoryContent")) {
                     if (m.name.equals("getCurrencyMsgPath")) {
-                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.owner = Type.getInternalName(CategoryContentTransformer.class);
                         m.name = "hookGetTranslatedCurrency";
                         m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
                         AbstractInsnNode next = insn.getNext();
@@ -168,7 +169,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                             }
                         }
                     } else if (m.name.equals("calculateMoney")) {
-                        m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
+                        m.owner = Type.getInternalName(CategoryContentTransformer.class);
                         m.name = "hookCalculateMoney";
                     }
                 }

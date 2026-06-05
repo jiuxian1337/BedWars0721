@@ -2,6 +2,7 @@ package cc.bw0721.asm;
 
 import cc.bw0721.transformer.CategoryContentTransformer;
 import cc.bw0721.transformer.OreGeneratorTransformer;
+import cc.bw0721.transformer.PlayerDropsTransformer;
 import cc.bw0721.utils.NativeUtils;
 
 import java.io.File;
@@ -33,6 +34,7 @@ public class TransformerManager {
 //            在这里注册你的变形金刚
             transform.addTransformer(new OreGeneratorTransformer());
             transform.addTransformer(new CategoryContentTransformer());
+            transform.addTransformer(new PlayerDropsTransformer());
             for (ASMTransformer asmTransformer : TransformerManager.transform.transformers) {
                 NativeUtils.a(asmTransformer.getTarget());
             }

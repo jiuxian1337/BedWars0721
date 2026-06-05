@@ -45,7 +45,9 @@ cc.bw0721
 ├── listener
 │   └── PickupItemListener   — Intercepts item pickups, converts to XP in XP arenas
 ├── transformer
-│   └── OreGeneratorTransformer — ASM hook into OreGenerator.spawn(), replaces per-player item distribution
+│   ├── OreGeneratorTransformer    — ASM hook into OreGenerator.spawn(), redirects jump target to replace per-player item distribution
+│   ├── CategoryContentTransformer — ASM hook into shop, rewrites calculateMoney/takeMoney/getPrice/currency display calls to XP-aware versions
+│   └── PlayerDropsTransformer     — (stub) planned hook into PlayerDrops.handlePlayerDrops
 ├── asm
 │   ├── TransformerManager   — init(): registers transformers, triggers bytecode patching + NativeUtils.b()
 │   ├── Transform           — Manages ASMTransformer list, iterates @Inject methods, rewrites classes
@@ -68,7 +70,8 @@ cc.bw0721
 BedWars0721.onEnable()
   → TransformerManager.init()
     → transform.addTransformer(new OreGeneratorTransformer())
-    → NativeUtils.a(Class)              ← JVMTI retransform hook — marks class for re-load
+    → transform.addTransformer(new CategoryContentTransformer())
+    → NativeUtils.a(Class)              ← JVMTI retransform hook — marks class for re-load, for each transformer target
     → transform.transform()
       → for each transformer: iterate @ASMTransformer.Inject methods
         → NativeUtils.b(Class)           ← fetch original class bytes from JVM
@@ -95,15 +98,26 @@ BedWars0721.onEnable()
 
 **build.zig:** Cross-compiles dllmain.cpp → 6 platform targets (`x86_64-windows`, `x86-windows`, `aarch64-windows`, `x86_64-linux-gnu`, `x86-linux-gnu`, `aarch64-linux-gnu`)
 
-### Transformer pattern
+### Transformer patterns
 
-To add a new bytecode hook:
+Two injection strategies are used:
+
+**1. Jump redirect** (OreGeneratorTransformer) — Replace a conditional branch target to inject new code at a specific control-flow point:
+1. Find the target `JumpInsnNode` by matching opcode + operand pattern
+2. Set `jump.label = newLabel` to redirect the branch
+3. Append new instructions (including the new label) to the method
+
+**2. Call rewiring** (CategoryContentTransformer) — Replace INVOKESTATIC/INVOKEINTERFACE calls to point at static hook methods:
+1. Iterate instructions looking for `MethodInsnNode` with matching owner + name
+2. Change `method.owner` → transformer class, `method.name` → hook method, `method.desc` → new descriptor
+3. Remove subsequent instructions that are no longer needed (e.g. `Language.getMsg()` after `getCurrencyMsgPath` if the hook already returns the translated string)
+4. Add `ALOAD` instructions before the call if the hook needs extra arguments (e.g. the Player)
+
+To add a new transformer:
 1. Extend `ASMTransformer`, pass target class in `super()`
 2. Add methods annotated with `@ASMTransformer.Inject(method="...", desc="...")`
 3. The method receives the target `MethodNode` — modify its `instructions` list directly
-4. Register with `TransformerManager.transform.addTransformer(new YourTransformer())` in `TransformerManager.init()`
-
-See `OreGeneratorTransformer` for example: replaces the `if (players.length > 1)` else branch in `OreGenerator.spawn()` by finding the `IF_ICMPGT` jump instruction and redirecting its label to new code.
+4. Register with `transform.addTransformer(new YourTransformer())` in `TransformerManager.init()`
 
 ### Key patterns
 
@@ -112,10 +126,16 @@ See `OreGeneratorTransformer` for example: replaces the `if (players.length > 1)
 - **JVMTI native agent**: Dllmain hooks class loading via `ClassFileLoadHook`, calls back into Java for modification decisions. Native libs bundled in JAR, extracted at runtime.
 - **ASM injection framework**: Ported from RelX client. Uses `@ASMTransformer.Inject` to mark hook methods. `Transform` iterates transformers, finds target MethodNodes, invokes hook methods, rewrites classes, applies via JVMTI.
 - **Version compatibility:** `BedWars.getForCurrentVersion(...)` resolves material/sound names across server versions.
+- **XP arena dispatch:** All transformers + listener follow the same pattern: `XPUtils.isXPArena(arenaName)` → if true, apply XP conversion logic; else delegate to the original BedWars method.
+- **Debug output:** When `TransformerManager.debugging` is true, transformed `.class` files are written to `debug/` for inspection via `javap`.
 
 ### Plugin metadata
 
-`plugin.yml` uses Gradle resource filtering — `version` expanded from `gradle.properties`. Permissions: `bw0721.admin`, `bw0721.command.reload`, `bw0721.command.addarena` (all default to op).
+`plugin.yml` uses Gradle resource filtering — `version` expanded from `gradle.properties`. Permissions: `bw0721.command`, `bw0721.command.reload`, `bw0721.command.addxparena` (all default to op).
+
+### Reference sources
+
+`skid/BedWars1058-25.9/` contains decompiled BedWars1058 sources used as reference when writing ASM hooks. These are NOT compiled or shipped — read-only reference for understanding target class bytecode shapes.
 
 ## Agent skills
 

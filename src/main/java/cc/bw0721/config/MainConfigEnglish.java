@@ -1,5 +1,6 @@
 package cc.bw0721.config;
 
+import cc.bw0721.utils.XPUtils;
 import com.andrei1058.bedwars.BedWars;
 import lombok.Getter;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -28,7 +29,7 @@ public class MainConfigEnglish implements MainConfig {
     private Map<String, Integer> currency = new HashMap<>() {{
         put("IRON_INGOT", 1);
         put("GOLD_INGOT", 10);
-        put(BedWars.getForCurrentVersion("EXP_BOTTLE", "EXP_BOTTLE", "EXPERIENCE_BOTTLE"), 10);
+        put(XPUtils.getExpBottleMaterial().name(), 10);
         put("EMERALD", 100);
     }};
 
