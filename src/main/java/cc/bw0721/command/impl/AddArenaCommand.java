@@ -15,14 +15,14 @@ import java.util.Objects;
 public class AddArenaCommand extends SubCommand {
 
     public AddArenaCommand() {
-        super("addarena", "bw0721.command.addarena");
+        super("addxparena", "bw0721.command.addxparena");
     }
 
     @Override
     public boolean execute(String[] args, CommandSender sender) {
         ConfigManager configManager = BedWars0721.getInstance().getConfigManager();
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMainConfig().getPrefix() + ChatColor.RED + "Usage: /bw0721 addarena <arena>"));
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMainConfig().getPrefix() + ChatColor.RED + "Usage: /bw0721 addxparena <arena>"));
             return true;
         }
         if (configManager.getMainConfig().getXpArenas().contains(args[0])) {

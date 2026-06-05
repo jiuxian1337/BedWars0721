@@ -5,7 +5,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Rules
 
 - **No comments.** Do not write JavaDoc, inline comments, or block comments. Code should be self-documenting through clear naming. XML comments and the `@` annotations/attributes on project config files (plugin.yml, build.gradle.kts) are not comments and are fine.
-- **Bytecode hook pre-analysis.** Before implementing an ASM transformer, run `javap -c -p -classpath libs/bedwars-plugin-25.2.jar <target class>` on the target method and list EVERY method call (INVOKESTATIC, INVOKEINTERFACE, INVOKEVIRTUAL) in a table: offset / opcode / owner.name / signature. Then mark which ones to hook and confirm with the user. Never implement hooks without this inventory.
 
 ## Project Overview
 

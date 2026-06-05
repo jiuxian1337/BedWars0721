@@ -7,3 +7,4 @@
 /NativeUtils/.zig-cache
 .zig-cache
 /.agents
+skills-lock.json

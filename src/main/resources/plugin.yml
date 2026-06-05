@@ -6,12 +6,12 @@ depend: [BedWars1058]
 
 commands:
   bw0721:
-    permission: bw0721.admin
+    permission: bw0721.command
 
 permissions:
-  bw0721.admin:
+  bw0721.command:
     default: op
   bw0721.command.reload:
     default: op
-  bw0721.command.addarena:
+  bw0721.command.addxparena:
     default: op

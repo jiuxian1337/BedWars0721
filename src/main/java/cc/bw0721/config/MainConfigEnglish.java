@@ -17,7 +17,11 @@ public class MainConfigEnglish implements MainConfig {
 
     @Setting("messages.experience")
     @Comment("Currency display text in the XP mode shop")
-    private String expMsg = "&fExperience";
+    private String expMsg = "Experience";
+
+    @Setting("messages.experience-color")
+    @Comment("Currency display color in the XP mode shop")
+    private String expColor = "f";
 
     @Setting("currency")
     @Comment("Currencies convertible to XP. Key = material name, Value = XP amount")

@@ -125,11 +125,12 @@ public class CategoryContentTransformer extends ASMTransformer {
                 if (m.name.equals("getPrice") && m.owner.equals("com/andrei1058/bedwars/api/arena/shop/IContentTier")) {
                     getPriceCount++;
                     if (getPriceCount == 2) {
-                        method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, 1));
+                        method.instructions.insertBefore(insn.getPrevious(), new VarInsnNode(Opcodes.ALOAD, 1));
                         m.setOpcode(Opcodes.INVOKESTATIC);
                         m.owner = "cc/bw0721/transformer/CategoryContentTransformer";
                         m.name = "hookGetPrice";
                         m.desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;)Ljava/lang/String;";
+                        m.itf = false;
                         AbstractInsnNode next = insn.getNext();
                         if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
                             MethodInsnNode nextM = (MethodInsnNode) next;

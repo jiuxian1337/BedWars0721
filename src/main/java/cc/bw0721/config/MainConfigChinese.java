@@ -17,7 +17,11 @@ public class MainConfigChinese implements MainConfig {
 
     @Setting("messages.experience")
     @Comment("经验模式商店中货币的文本")
-    private String expMsg = "&f经验";
+    private String expMsg = "经验";
+
+    @Setting("messages.experience-color")
+    @Comment("经验模式商店中货币的颜色")
+    private String expColor = "f";
 
     @Setting("currency")
     @Comment("可转换成经验的货币")

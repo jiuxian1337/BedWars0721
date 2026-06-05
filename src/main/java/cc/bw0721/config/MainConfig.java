@@ -9,6 +9,8 @@ public interface MainConfig {
 
     String getExpMsg();
 
+    String getExpColor();
+
     Map<String, Integer> getCurrency();
 
     List<String> getXpArenas();
