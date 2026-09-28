@@ -1,6 +1,8 @@
 # BedWars0721 · 经验起床
 
 [![Build](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml/badge.svg)](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/jiuxian1337/BedWars0721?color=blue&label=release)](https://github.com/jiuxian1337/BedWars0721/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/jiuxian1337/BedWars0721/total?color=green&label=downloads)](https://github.com/jiuxian1337/BedWars0721/releases)
 [![Stars](https://img.shields.io/github/stars/jiuxian1337/BedWars0721?color=f5c542&label=stars)](https://github.com/jiuxian1337/BedWars0721/stargazers)
 [![License](https://img.shields.io/github/license/jiuxian1337/BedWars0721?color=orange&label=license)](LICENSE)
 [![Bilibili](https://img.shields.io/badge/B站-开服教程视频-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV1jMaj69EGg/)
@@ -26,9 +28,9 @@
 
 ## 下载与安装
 
-**下载地址**：[GitHub Actions 最新构建](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml)，点进最新一次运行，在页面底部 **Artifacts** 里下载 `BedWars0721`，解压得到的 `BedWars0721-1.0.jar` 就是插件本体。
+**下载地址**：**[Releases · 最新版本](https://github.com/jiuxian1337/BedWars0721/releases/latest)** —— 在页面底部的 **Assets** 里点 `BedWars0721-1.0.jar` 直接下载，**免登录**。
 
-> Actions 下载需要登录 GitHub 账号；[Releases](https://github.com/jiuxian1337/BedWars0721/releases) 页面发布正式版本后即可免登录直接下载。
+> 想尝鲜开发中的改动？[Actions 最新构建](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml) 的 Artifacts 里有每次提交的产物（需要登录 GitHub 账号）。
 
 **环境要求**
 
@@ -149,6 +151,8 @@
 - 📺 把[开服教程视频](https://www.bilibili.com/video/BV1jMaj69EGg/)分享给需要的朋友或服主群
 - 🐛 遇到 Bug 或有功能建议，欢迎[提 Issue](https://github.com/jiuxian1337/BedWars0721/issues)
 - 💬 加入交流群，使用问题、开服求助都可以直接问
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jiuxian1337/BedWars0721&type=Date)](https://star-history.com/#jiuxian1337/BedWars0721&Date)
 
 ## 交流与反馈
 
