@@ -42,6 +42,8 @@ public class NativeUtils {
         String libName;
         if (target.contains("windows")) {
             libName = "NativeUtils.dll";
+        } else if (target.contains("macos")) {
+            libName = "libNativeUtils.dylib";
         } else {
             libName = "libNativeUtils.so";
         }
@@ -73,6 +75,9 @@ public class NativeUtils {
         }
         if (os.contains("linux")) {
             return "linux-gnu";
+        }
+        if (os.contains("mac")) {
+            return "macos";
         }
         throw new RuntimeException("Unsupported OS: " + os);
     }

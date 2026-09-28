@@ -8,6 +8,8 @@ pub fn build(b: *std.Build) void {
         .{ .triple = "x86_64-linux-gnu",    .dir = "x86_64-linux-gnu" },
         .{ .triple = "x86-linux-gnu",       .dir = "x86-linux-gnu" },
         .{ .triple = "aarch64-linux-gnu",   .dir = "aarch64-linux-gnu" },
+        .{ .triple = "x86_64-macos",        .dir = "x86_64-macos" },
+        .{ .triple = "aarch64-macos",       .dir = "aarch64-macos" },
     };
 
     const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseSmall });
@@ -17,6 +19,7 @@ pub fn build(b: *std.Build) void {
         const query = std.Target.Query.parse(.{ .arch_os_abi = t.triple }) catch @panic("bad triple");
         const resolved = b.resolveTargetQuery(query);
         const is_windows = std.mem.indexOf(u8, t.triple, "windows") != null;
+        const is_macos = std.mem.indexOf(u8, t.triple, "macos") != null;
 
         const mod = b.createModule(.{
             .target = resolved,
@@ -34,7 +37,7 @@ pub fn build(b: *std.Build) void {
         mod.addCSourceFile(.{ .file = b.path("dllmain.cpp") });
         mod.addIncludePath(b.path("."));
 
-        const basename = if (is_windows) "NativeUtils.dll" else "libNativeUtils.so";
+        const basename = if (is_windows) "NativeUtils.dll" else if (is_macos) "libNativeUtils.dylib" else "libNativeUtils.so";
 
         const install = b.addInstallFileWithDir(
             lib.getEmittedBin(),
