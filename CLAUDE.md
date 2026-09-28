@@ -8,29 +8,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BedWars0721 (formerly XPWars) is a Minecraft addon plugin for BedWars1058. It converts in-game currencies (iron, gold, emeralds, XP bottles) into XP points, and hooks into OreGenerator item distribution to redirect per-player payouts.
+BedWars0721 (formerly XPWars) is a BedWars1058 addon that turns the vanilla XP level into the in-game currency — "XP mode" (经验起床). It hot-patches BedWars1058 classes with ASM + JVMTI so that resources convert to levels, the shop/upgrade/trap menus charge levels, and deaths move levels around. See [XP mode standard](#xp-mode-standard-经验起床) for the behaviour spec.
 
 - **Main class:** `cc.bw0721.BedWars0721`
-- **Command:** `/bw0721` (permission: `bw0721.admin`)
-- **API target:** Spigot 1.8.8 (compile-only)
-- **Primary dependency:** BedWars1058 plugin (`libs/bedwars-plugin-25.2.jar`)
+- **Command:** `/bw0721 reload`, `/bw0721 addxparena <arena>` (root permission `bw0721.command`)
+- **Primary dependency:** BedWars1058 (`libs/bedwars-plugin-25.2.jar`, compile-only) — also the ground truth for any bytecode work
+- **Compile target:** Spigot 1.8.8 (compile-only), `plugin.yml` `api-version: 1.13`
 - **Java version:** 17 (Gradle toolchain)
+
+## Repository layout
+
+```
+src/         Java sources + plugin.yml
+libs/        compile-only jars (BedWars1058 25.2, sidebar libs)
+NativeUtils/ dllmain.cpp (JVMTI agent), build.zig, jni/jvmti headers
+skid/        decompiled BedWars1058 25.9 sources — read-only reference, never compiled (25.2 bytecode wins on conflict)
+run/         1.8.8 test server (run-paper): worlds, configs, plugins, debug/ output
+docs/        agent skills docs
+```
 
 ## Build & Develop
 
 ```bash
-./gradlew build        # Builds plugin + native libs → build/libs/BedWars0721-*-all.jar
-./gradlew runServer    # Starts a 1.8.8 test server in run/
-./gradlew shadowJar    # Build just the fat JAR without native rebuild
+./gradlew build        # zig natives + plugin → build/libs/BedWars0721-<version>.jar
+./gradlew shadowJar    # jar only, still rebuilds natives through processResources
+./gradlew runServer    # starts the 1.8.8 test server in run/
 ```
 
-Native libraries are cross-compiled via Zig 0.16.0 as part of the Gradle build and bundled into the JAR under `natives/<target-triple>/`.
+- The shadow jar has no classifier: `build/libs/BedWars0721-1.0.jar`.
+- `processResources` depends on the zig build, so **zig (0.16.0, same version as CI) must be on PATH** for any jar build. Natives land in the jar under `natives/<target-triple>/`.
+- `runServer` copies the built jar into `run/plugins/` as `BedWars0721-1.0_RunServer_plugin.jar`; `run/` already contains BedWars1058, Citizens, LuckPerms and arena worlds.
+
+## Configuration
+
+`plugins/BedWars0721/config.yml`, written on first enable by `ConfigManager` and re-written by `/bw0721 reload`. Configurate `@Setting`/`@Comment` classes; the locale picks the defaults (`zh` → `MainConfigChinese`, else `MainConfigEnglish`).
+
+- `messages.prefix` / `messages.experience` / `messages.experience-color` — prefix, currency label and colour in XP mode
+- `currency` — material name → levels granted per item; a missing or `0` entry stays an ordinary item
+- `xp-arenas` — arena names running XP mode (write with `/bw0721 addxparena`, tab-completes from `BedWars1058/Arenas/*.yml`)
 
 ## Architecture
 
 ```
 cc.bw0721
-├── BedWars0721              — Plugin entry, extends JavaPlugin
+├── BedWars0721              — Plugin entry: config → command → TransformerManager.init() → listeners
 ├── config
 │   ├── MainConfig           — Interface
 │   ├── ConfigManager        — Configurate YAML loader, auto-picks locale (zh/en)
@@ -38,30 +59,30 @@ cc.bw0721
 │   └── MainConfigChinese    — Chinese defaults
 ├── command
 │   ├── CommandManager       — /bw0721 executor + tab completer
-│   ├── SubCommand           — Base class (name, permission, hasPermission checks bw.* / bw0721.*)
+│   ├── SubCommand           — Base class; hasPermission accepts bw.* / bw0721.* / its own node
 │   └── impl
 │       ├── ReloadCommand    — /bw0721 reload
-│       └── AddArenaCommand  — /bw0721 addarena <arena>
+│       └── AddArenaCommand  — /bw0721 addxparena <arena>
 ├── listener
-│   ├── PickupItemListener   — Intercepts item pickups, converts to XP in XP arenas
+│   ├── PickupItemListener   — Cancels item pickups in XP arenas and pays levels instead
 │   └── DeathListener        — LOWEST: kills vanilla XP orbs. MONITOR: killer takes the victim's levels, victim is zeroed
 ├── transformer
-│   ├── OreGeneratorTransformer    — ASM hook into OreGenerator.spawn(), redirects jump target to replace per-player item distribution
-│   ├── CategoryContentTransformer — ASM hook into shop: rewrites calculateMoney/takeMoney bodies, plus getPrice/currency display call sites
-│   └── PlayerDropsTransformer     — ASM hook into PlayerDrops: XP bottles after the bed-destroyed drop loop and at the end of dropItems
+│   ├── OreGeneratorTransformer    — Hooks OreGenerator.spawn() to pay gen-split payouts as levels
+│   ├── CategoryContentTransformer — Rewrites the two money methods and the shop price/currency display
+│   └── PlayerDropsTransformer     — Hooks PlayerDrops to drop XP bottles on death
 ├── asm
-│   ├── TransformerManager   — init(): registers transformers, triggers bytecode patching + NativeUtils.b()
-│   ├── Transform           — Manages ASMTransformer list, iterates @Inject methods, rewrites classes
-│   ├── ASMTransformer       — Base class for bytecode hooks, inner @Inject annotation (method + desc)
+│   ├── TransformerManager   — init(): registers transformers, retransforms targets, applies new bytecode
+│   ├── Transform           — Iterates transformers and their @Inject methods, rewrites classes
+│   ├── ASMTransformer       — Base class (holds the target Class) + inner @Inject annotation (method + desc)
 │   └── transformer
-│       └── Operation        — Interface: findTargetMethod, isLoadOpe, isStoreOpe
+│       └── Operation        — findTargetMethod (desc via DescParser), isLoadOpe, isStoreOpe
 └── utils
-    ├── NativeUtils          — Static native loader (extracts from JAR → temp → System.load()) + JNI native methods
-    ├── XPUtils              — XP value lookup, arena XP-mode detection, pickup sound
-    ├── ReflectionUtils       — Reflection helpers (getFieldValue, setFieldValue, getMethod)
+    ├── NativeUtils          — Native loader + JNI natives + original-byte cache filled by the JVMTI hook
+    ├── XPUtils              — Currency map lookup, XP-arena lookup, pickup sound, XP bottle material
+    ├── ReflectionUtils      — Reflection helpers (getFieldValue, setFieldValue, getMethod)
     └── asm
         ├── ASMUtils         — ClassNode/ClassWriter helpers, annotation value extraction
-        ├── ClassUtils       — (legacy)
+        ├── ClassUtils       — Class.forName lookup used for frame computation
         └── DescParser       — Descriptor mapping
 ```
 
@@ -70,79 +91,54 @@ cc.bw0721
 ```
 BedWars0721.onEnable()
   → TransformerManager.init()
-    → transform.addTransformer(new OreGeneratorTransformer())
-    → transform.addTransformer(new CategoryContentTransformer())
-    → NativeUtils.a(Class)              ← JVMTI retransform hook — marks class for re-load, for each transformer target
-    → transform.transform()
-      → for each transformer: iterate @ASMTransformer.Inject methods
-        → NativeUtils.b(Class)           ← fetch original class bytes from JVM
-        → ASMUtils.node(bytes)           ← parse to ClassNode
-        → invoke @Inject method with MethodNode  ← OreGeneratorTransformer.hookSpawn()
-        → ASMUtils.rewriteClass(node)    ← emit modified bytecode
-    → NativeUtils.b(Class, newBytes)    ← JVMTI RedefineClasses — hot-swap class
+    → for each transformer: NativeUtils.a(targetClass)     ← native RetransformClasses
+        → JVMTI ClassFileLoadHook → ProcessHookedClassFile
+          → Java NativeUtils.a(cls, loader, name, bytes)   ← caches the ORIGINAL bytes per target class
+    → Transform.transform()
+      → per transformer: NativeUtils.b(targetClass)        ← plain Java: read the cached bytes
+        → ASMUtils.node(bytes)                             ← ClassNode
+        → invoke each @Inject method with its target MethodNode
+        → ASMUtils.rewriteClass(node)                      ← COMPUTE_MAXS | COMPUTE_FRAMES
+    → NativeUtils.b(targetClass, newBytes)                 ← native RedefineClasses — hot swap
 ```
 
 ### Native library system
 
-**NativeUtils.java:**
-- `static {}` block: detects OS/arch → maps to target triple (e.g. `x86_64-windows`) → extracts DLL/SO/dylib from JAR resource → `System.load()`
-- `native a(Class)` — JVMTI `RetransformClasses` — triggers ClassFileLoadHook callback
-- `native b(Class, byte[])` — JVMTI `RedefineClasses` — hot-replaces class bytecode
-- `a(Class, ClassLoader, String, byte[])` — JVM callback from `ProcessHookedClassFile`, caches original bytes
+`NativeUtils` loads the agent at class-init: detect OS/arch → target triple → extract `natives/<triple>/libNativeUtils.{dll,dylib,so}` from the jar to a temp file → `System.load()`. `isLoaded()` reports the result.
 
-**dllmain.cpp:**
-- `JNI_OnLoad` → sets up JVMTI ClassFileLoadHook callback
-- `ProcessHookedClassFile` → calls back into Java `NativeUtils.a()` to decide whether to cache/modify class bytes
-- `Java_cc_bw0721_utils_NativeUtils_a` — `RetransformClasses(1, &arg1)`
-- `Java_cc_bw0721_utils_NativeUtils_b` — `RedefineClasses(1, &classDef)`
-- `saved_classloader` cached on first native call from Java side
+- `native a(Class)` — JVMTI `RetransformClasses`; the only way to make the JVM hand us a class's current bytes
+- `native b(Class, byte[])` — JVMTI `RedefineClasses`; hot-swaps the class
+- `a(Class, ClassLoader, String, byte[])` — **not native**: called back from `ProcessHookedClassFile` for every transformer target during the retransform, caches the original bytes in `cachedClassBytes`
+- `b(Class)` — **not native**: reads that cache (`Transform` uses it instead of asking the JVM again)
 
-**build.zig:** Cross-compiles dllmain.cpp → 8 platform targets (`x86_64-windows`, `x86-windows`, `aarch64-windows`, `x86_64-linux-gnu`, `x86-linux-gnu`, `aarch64-linux-gnu`, `x86_64-macos`, `aarch64-macos`)
+`NativeUtils/dllmain.cpp`: `JNI_OnLoad` installs the `ClassFileLoadHook` callback; `ProcessHookedClassFile` calls the Java `a(...)` above; `Java_cc_bw0721_utils_NativeUtils_a`/`_b` wrap `RetransformClasses`/`RedefineClasses`.
+`NativeUtils/build.zig` cross-compiles it for 8 triples (`x86_64`/`x86`/`aarch64` × windows, and `x86_64`/`x86`/`aarch64` linux-gnu, plus `x86_64`/`aarch64` macos).
 
 ### Transformer patterns
 
-Two injection strategies are used:
+Three strategies, all driven by `@Inject(method, desc)` on a `MethodNode`:
 
-**1. Jump redirect** (OreGeneratorTransformer) — Replace a conditional branch target to inject new code at a specific control-flow point:
-1. Find the target `JumpInsnNode` by matching opcode + operand pattern
-2. Set `jump.label = newLabel` to redirect the branch
-3. Append new instructions (including the new label) to the method
+1. **Jump redirect** (`OreGeneratorTransformer`) — find the `JumpInsnNode` by opcode + operand pattern, set `jump.label` to a fresh `LabelNode`, append the new block (label + `ALOAD`s + `INVOKESTATIC` + `RETURN`) to the method.
+2. **Call rewiring** (`CategoryContentTransformer.getItemStack`/`execute`, `PlayerDropsTransformer.handlePlayerDrops` style) — retarget a `MethodInsnNode` at a `public static` hook: change `owner`/`name`/`desc`, push extra arguments with `ALOAD`/`ILOAD`, and delete instructions the hook now covers (e.g. the `Language.getMsg` after `getCurrencyMsgPath`, or a whole `sendMessage` block).
+3. **Body replacement / insertion** (`CategoryContentTransformer.calculateMoney`+`takeMoney`, `PlayerDropsTransformer.dropItems`) — replace `method.instructions` wholesale with a single delegation call (clear `tryCatchBlocks` and `localVariables` too), or insert `ALOAD`+`INVOKESTATIC` before the last `RETURN`.
 
-**2. Call rewiring** (CategoryContentTransformer) — Replace INVOKESTATIC/INVOKEINTERFACE calls to point at static hook methods:
-1. Iterate instructions looking for `MethodInsnNode` with matching owner + name
-2. Change `method.owner` → transformer class, `method.name` → hook method, `method.desc` → new descriptor
-3. Remove subsequent instructions that are no longer needed (e.g. `Language.getMsg()` after `getCurrencyMsgPath` if the hook already returns the translated string)
-4. Add `ALOAD` instructions before the call if the hook needs extra arguments (e.g. the Player)
+`Transform` only dispatches methods that take exactly one `MethodNode`; a hook may never call back into the method it rewrote (infinite recursion — reimplement the vanilla fallback inside the hook instead).
 
-To add a new transformer:
-1. Extend `ASMTransformer`, pass target class in `super()`
-2. Add methods annotated with `@ASMTransformer.Inject(method="...", desc="...")`
-3. The method receives the target `MethodNode` — modify its `instructions` list directly
-4. Register with `transform.addTransformer(new YourTransformer())` in `TransformerManager.init()`
+To add a transformer: extend `ASMTransformer` with the target class in `super()`, add `@Inject` methods, and register it in `TransformerManager.init()`.
 
 ### Key patterns
 
-- **Configurate YAML** with `@Setting`/`@Comment` annotations + Lombok `@Getter`. Locale auto-detection: `zh` → Chinese, else English.
-- **Libby runtime loading**: `configurate-yaml`, `asm`, `asm-tree` downloaded at runtime from Aliyun Maven mirror. Shadow plugin relocates `com.alessiodp.libby` → `cc.bw0721.libby`.
-- **JVMTI native agent**: Dllmain hooks class loading via `ClassFileLoadHook`, calls back into Java for modification decisions. Native libs bundled in JAR, extracted at runtime.
-- **ASM injection framework**: Ported from RelX client. Uses `@ASMTransformer.Inject` to mark hook methods. `Transform` iterates transformers, finds target MethodNodes, invokes hook methods, rewrites classes, applies via JVMTI.
-- **Version compatibility:** `BedWars.getForCurrentVersion(...)` resolves material/sound names across server versions.
-- **XP arena dispatch:** All transformers + listener follow the same pattern: `XPUtils.isXPArena(arenaName)` → if true, apply XP conversion logic; else delegate to the original BedWars method.
-- **Debug output:** When `TransformerManager.debugging` is true, transformed `.class` files are written to `debug/` for inspection via `javap`.
-
-### Plugin metadata
-
-`plugin.yml` uses Gradle resource filtering — `version` expanded from `gradle.properties`. Permissions: `bw0721.command`, `bw0721.command.reload`, `bw0721.command.addxparena` (all default to op).
-
-### Reference sources
-
-`skid/BedWars1058-25.9/` contains decompiled BedWars1058 sources used as reference when writing ASM hooks. These are NOT compiled or shipped — read-only reference for understanding target class bytecode shapes.
+- **Hook targeting is bytecode-exact.** Read the real class with `javap -p -c -classpath libs/bedwars-plugin-25.2.jar <class>` before writing a pattern; `skid/` (25.9) drifts from the shipped 25.2 jar.
+- **XP arena dispatch:** every hook starts from `XPUtils.isXPArena(arena.getArenaName())` (and `Arena.getArenaByPlayer` may be null) — outside XP arenas the vanilla BedWars path must run unchanged.
+- **Version compatibility:** `BedWars.getForCurrentVersion(v1_8, v1_12, v1_13)` resolves material/sound names; `XPUtils` uses it for the pickup sound and the XP bottle material.
+- **Configurate YAML** with `@Setting`/`@Comment` + Lombok `@Getter`; `ConfigManager.save()` rewrites the file from the config object.
+- **Libby runtime loading:** `configurate-yaml`, `asm`, `asm-tree` are downloaded on enable from the Aliyun mirror; the shadow plugin relocates `com.alessiodp.libby` → `cc.bw0721.libby`.
+- **ASM injection framework** ported from the RelX client: `@ASMTransformer.Inject` marks hooks, `Transform` finds each target and calls the hook, `NativeUtils` applies the result via JVMTI.
+- **Debug output:** with `TransformerManager.debugging` the rewritten classes are written to `debug/` **relative to the server working directory** (`run/debug/`) at every enable — inspect with `javap -p -c <file>.class`.
 
 ## XP mode standard (经验起床)
 
-The complete-behaviour spec for XP mode. Reference implementations: `skid/BedWars1058-25.9/` (decompiled sources) and the BedWars1058-XP fork. Every hook must be written against the real bytecode of `libs/bedwars-plugin-25.2.jar` (`javap -p -c -classpath libs/bedwars-plugin-25.2.jar <class>`), not against the 25.9 reference sources.
-
-### Rules
+Behaviour spec, distilled from the BedWars1058-XP fork: rules 1–8 are what the code does today, rule 8 lists the known gaps.
 
 1. **Currency is the vanilla XP level** (`Player#getLevel`). `currency` in the plugin config maps material name → levels granted per item. Unset or `0` = that material stays an item.
 2. **Scope**: only arenas listed in `xp-arenas`. Vanilla BedWars1058 already zeroes level/exp on arena join and restores them on leave (`PlayerGoods`), so in-game levels never leak to the lobby.
@@ -158,15 +154,7 @@ The complete-behaviour spec for XP mode. Reference implementations: `skid/BedWar
 7. **Hooks are null-safe**: `Arena.getArenaByPlayer` can return null, and every drop path guards on `XPUtils.isXPArena` so normal arenas keep vanilla behaviour.
 8. **Known limitations**: the upgrade/trap menu lore still prints the original currency name and item price (only affordability and deduction are XP-aware) — same as the reference fork. In mixed mode (a currency whose value is 0, e.g. diamonds by default) the price text stays an item price while `getItemStack` still paints it with `messages.experience-color`, because the colour hook only receives the colour local, not the currency.
 
-### Checklist
-
-- [x] Block vanilla XP orbs on death in XP arenas
-- [x] Killer takes the victim's levels on a regular death (victim zeroed)
-- [x] Drop XP bottles from `PlayerDrops.dropItems` (void / no killer / despawnable / PvP logout)
-- [x] Make team upgrades and traps settle in XP (rewrite `CategoryContent.calculateMoney` + `takeMoney` bodies)
-- [x] Report the insufficient-balance gap in levels, not item units
-- [x] Null-safe hooks + `isXPArena` guard on every drop path
-- [x] Verified: `Arena.removePlayer` needs no change (vanilla `PlayerGoods.restore` already rewrites level and exp)
+**Status:** all of the above is implemented and checked against the shipped jar — a test server enable redefines `OreGenerator`, `CategoryContent` and `PlayerDrops` with no errors, and `run/debug/*.class` shows the expected bytecode at every injection point. In-game behaviour (level transfer, bottle drops, upgrade purchases) has not been playtested yet.
 
 ## Agent skills
 
