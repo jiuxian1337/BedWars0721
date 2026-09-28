@@ -67,12 +67,14 @@ public class OreGeneratorTransformer extends ASMTransformer {
     @SuppressWarnings("deprecation")
     public static void handleTeamSplit(OreGenerator generator, Object[] players) {
         try {
-            if (generator == null || players == null) return;
+            if (generator == null || players == null || players.length == 0) return;
             IArena arena = Arena.getArenaByPlayer((Player)players[0]);
+            if (arena == null) return;
             boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
             for(Object o : players) {
                 Player player = (Player)o;
                 ItemStack item = ((ItemStack) ReflectionUtils.getFieldValue(OreGenerator.class, "ore", generator)).clone();
+                item.setAmount((Integer) ReflectionUtils.getFieldValue(OreGenerator.class, "amount", generator));
 
                 int xp = XPUtils.getExp(item.getType()) * item.getAmount();
                 if (xpArena && xp != 0) {
@@ -80,7 +82,6 @@ public class OreGeneratorTransformer extends ASMTransformer {
                         player.setLevel(player.getLevel() + xp);
                 } else {
 
-                    item.setAmount((Integer) ReflectionUtils.getFieldValue(OreGenerator.class, "amount", generator));
                     player.playSound(player.getLocation(), Sound.valueOf(BedWars.getForCurrentVersion("ITEM_PICKUP", "ENTITY_ITEM_PICKUP", "ENTITY_ITEM_PICKUP")), 0.6F, 1.3F);
 
                     for (ItemStack value : player.getInventory().addItem(new ItemStack[]{item}).values()) {

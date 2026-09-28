@@ -3,6 +3,7 @@ package cc.bw0721;
 import cc.bw0721.asm.TransformerManager;
 import cc.bw0721.command.CommandManager;
 import cc.bw0721.config.ConfigManager;
+import cc.bw0721.listener.DeathListener;
 import cc.bw0721.listener.PickupItemListener;
 import com.alessiodp.libby.Library;
 import com.alessiodp.libby.BukkitLibraryManager;
@@ -62,6 +63,7 @@ public final class BedWars0721 extends JavaPlugin {
             getCommand("bw0721").setTabCompleter(commandManager);
             TransformerManager.init();
             getServer().getPluginManager().registerEvents(new PickupItemListener(), this);
+            getServer().getPluginManager().registerEvents(new DeathListener(), this);
             printStartupMessage("&fBedWars1058 &7found and hooked successfully.");
         } else {
             getLogger().warning("There is no BedWars plugin installed!");

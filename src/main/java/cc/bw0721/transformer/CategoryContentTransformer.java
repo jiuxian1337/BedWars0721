@@ -3,6 +3,7 @@ package cc.bw0721.transformer;
 import cc.bw0721.BedWars0721;
 import cc.bw0721.asm.ASMTransformer;
 import cc.bw0721.utils.XPUtils;
+import com.andrei1058.bedwars.BedWars;
 import com.andrei1058.bedwars.api.arena.IArena;
 import com.andrei1058.bedwars.api.arena.shop.IContentTier;
 import com.andrei1058.bedwars.api.language.Language;
@@ -12,6 +13,7 @@ import com.andrei1058.bedwars.shop.main.CategoryContent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -19,6 +21,35 @@ import org.objectweb.asm.tree.*;
 public class CategoryContentTransformer extends ASMTransformer {
     public CategoryContentTransformer() {
         super(CategoryContent.class);
+    }
+
+    @Inject(method = "calculateMoney", desc = "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;)I")
+    public void hookCalculateMoneyBody(MethodNode method) {
+        InsnList body = new InsnList();
+        body.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        body.add(new VarInsnNode(Opcodes.ALOAD, 1));
+        body.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                Type.getInternalName(CategoryContentTransformer.class),
+                "hookCalculateMoney",
+                "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;)I",
+                false));
+        body.add(new InsnNode(Opcodes.IRETURN));
+        replaceBody(method, body);
+    }
+
+    @Inject(method = "takeMoney", desc = "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;I)V")
+    public void hookTakeMoneyBody(MethodNode method) {
+        InsnList body = new InsnList();
+        body.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        body.add(new VarInsnNode(Opcodes.ALOAD, 1));
+        body.add(new VarInsnNode(Opcodes.ILOAD, 2));
+        body.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                Type.getInternalName(CategoryContentTransformer.class),
+                "hookTakeMoney",
+                "(Lorg/bukkit/entity/Player;Lorg/bukkit/Material;I)V",
+                false));
+        body.add(new InsnNode(Opcodes.RETURN));
+        replaceBody(method, body);
     }
 
     @Inject(method = "execute", desc = "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/shop/ShopCache;I)V")
@@ -75,7 +106,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                         AbstractInsnNode prev = cur.getPrevious();
                         int aloadCount = 0;
                         while (prev != null) {
-                            if (prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 1) {
+                            if (prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode) prev).var == 1) {
                                 aloadCount++;
                                 if (aloadCount == 2) {
                                     start = prev;
@@ -96,10 +127,10 @@ public class CategoryContentTransformer extends ASMTransformer {
                 replacement.add(new VarInsnNode(Opcodes.ALOAD, 4));
                 replacement.add(new VarInsnNode(Opcodes.ILOAD, 5));
                 replacement.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                    Type.getInternalName(CategoryContentTransformer.class),
-                    "hookCantBuy",
-                    "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;I)V",
-                    false));
+                        Type.getInternalName(CategoryContentTransformer.class),
+                        "hookCantBuy",
+                        "(Lorg/bukkit/entity/Player;Lcom/andrei1058/bedwars/api/arena/shop/IContentTier;I)V",
+                        false));
 
                 execute.instructions.insertBefore(start, replacement);
 
@@ -136,7 +167,7 @@ public class CategoryContentTransformer extends ASMTransformer {
                         if (next != null && next.getOpcode() == Opcodes.INVOKESTATIC) {
                             MethodInsnNode nextM = (MethodInsnNode) next;
                             if (nextM.name.equals("valueOf") && nextM.owner.equals("java/lang/String")
-                                && nextM.desc.equals("(I)Ljava/lang/String;")) {
+                                    && nextM.desc.equals("(I)Ljava/lang/String;")) {
                                 method.instructions.remove(nextM);
                             }
                         }
@@ -147,9 +178,9 @@ public class CategoryContentTransformer extends ASMTransformer {
             if (insn.getOpcode() == Opcodes.INVOKESTATIC) {
                 MethodInsnNode m = (MethodInsnNode) insn;
                 if (m.owner.equals("java/lang/String") && m.name.equals("valueOf")
-                    && m.desc.equals("(Ljava/lang/Object;)Ljava/lang/String;")) {
+                        && m.desc.equals("(Ljava/lang/Object;)Ljava/lang/String;")) {
                     AbstractInsnNode prev = insn.getPrevious();
-                    if (prev instanceof VarInsnNode && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode)prev).var == 11) {
+                    if (prev instanceof VarInsnNode && prev.getOpcode() == Opcodes.ALOAD && ((VarInsnNode) prev).var == 11) {
                         method.instructions.insertBefore(prev, new VarInsnNode(Opcodes.ALOAD, 1));
                         m.owner = Type.getInternalName(CategoryContentTransformer.class);
                         m.name = "hookGetCurrencyColor";
@@ -177,69 +208,108 @@ public class CategoryContentTransformer extends ASMTransformer {
         }
     }
 
-    public static int hookCalculateMoney(Player player, Material currency) {
+    private static void replaceBody(MethodNode method, InsnList body) {
+        method.instructions.clear();
+        method.tryCatchBlocks.clear();
+        method.localVariables = null;
+        method.instructions.add(body);
+    }
+
+    private static boolean isXpArena(Player player) {
         IArena arena = Arena.getArenaByPlayer(player);
-        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
-        if (xpArena) {
-            int exp = XPUtils.getExp(currency);
-            if (exp > 0) {
-                return player.getLevel() / exp;
-            } else {
-                return CategoryContent.calculateMoney(player, currency);
+        return arena != null && XPUtils.isXPArena(arena.getArenaName());
+    }
+
+    private static boolean usesXp(Player player, Material currency) {
+        return isXpArena(player) && XPUtils.getExp(currency) > 0;
+    }
+
+    private static String expMsg() {
+        return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+    }
+
+    public static int hookCalculateMoney(Player player, Material currency) {
+        if (usesXp(player, currency)) {
+            return player.getLevel() / XPUtils.getExp(currency);
+        }
+        return countCurrency(player, currency);
+    }
+
+    private static int countCurrency(Player player, Material currency) {
+        if (currency == Material.AIR) {
+            return (int) BedWars.getEconomy().getMoney(player);
+        }
+        int amount = 0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null) continue;
+            if (item.getType() == currency) amount += item.getAmount();
+        }
+        return amount;
+    }
+
+    public static void hookTakeMoney(Player player, Material currency, int amount) {
+        if (usesXp(player, currency)) {
+            player.setLevel(player.getLevel() - XPUtils.getExp(currency) * amount);
+            return;
+        }
+        takeCurrency(player, currency, amount);
+    }
+
+    private static void takeCurrency(Player player, Material currency, int amount) {
+        if (currency == Material.AIR) {
+            if (!BedWars.getEconomy().isEconomy()) {
+                player.sendMessage("§4§lERROR: This requires Vault Support! Please install Vault plugin!");
+                return;
             }
-        } else {
-            return CategoryContent.calculateMoney(player, currency);
+            BedWars.getEconomy().buyAction(player, amount);
+            return;
+        }
+
+        int cost = amount;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null) continue;
+            if (item.getType() != currency) continue;
+            if (item.getAmount() < cost) {
+                cost -= item.getAmount();
+                BedWars.nms.minusAmount(player, item, item.getAmount());
+                player.updateInventory();
+            } else {
+                BedWars.nms.minusAmount(player, item, cost);
+                player.updateInventory();
+                break;
+            }
         }
     }
 
     public static void hookCantBuy(Player player, IContentTier ct, int money) {
-        String currency = Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
-        IArena arena = Arena.getArenaByPlayer(player);
-        if (XPUtils.isXPArena(arena.getArenaName())) currency = BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+        int exp = XPUtils.getExp(ct.getCurrency());
+        boolean useXp = usesXp(player, ct.getCurrency());
+        String currency = useXp ? expMsg() : Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
+        int missing = useXp ? exp * ct.getPrice() - player.getLevel() : ct.getPrice() - money;
         player.sendMessage(Language.getMsg(player, Messages.SHOP_INSUFFICIENT_MONEY)
-            .replace("{currency}", currency)
-            .replace("{amount}", String.valueOf(ct.getPrice() - money)));
+                .replace("{currency}", currency)
+                .replace("{amount}", String.valueOf(missing)));
     }
 
     public static String hookGetPrice(Player player, IContentTier ct) {
-        IArena arena = Arena.getArenaByPlayer(player);
-        if (XPUtils.isXPArena(arena.getArenaName())) {
-            int exp = XPUtils.getExp(ct.getCurrency());
-            if (exp > 0) {
-                return String.valueOf(exp * ct.getPrice());
-            }
+        int exp = XPUtils.getExp(ct.getCurrency());
+        if (isXpArena(player) && exp > 0) {
+            return String.valueOf(exp * ct.getPrice());
         }
         return String.valueOf(ct.getPrice());
     }
 
     public static String hookGetTranslatedCurrency(Player player, IContentTier ct) {
-        IArena arena = Arena.getArenaByPlayer(player);
-        if (XPUtils.isXPArena(arena.getArenaName())) {
-            return BedWars0721.getInstance().getConfigManager().getMainConfig().getExpMsg();
+        if (usesXp(player, ct.getCurrency())) {
+            return expMsg();
         }
         return Language.getMsg(player, CategoryContent.getCurrencyMsgPath(ct));
     }
 
     public static String hookGetCurrencyColor(Player player, Object color) {
-        IArena arena = Arena.getArenaByPlayer(player);
-        if (XPUtils.isXPArena(arena.getArenaName())) {
+        if (isXpArena(player)) {
             return ChatColor.getByChar(BedWars0721.getInstance().getConfigManager().getMainConfig().getExpColor()).toString();
         }
         return String.valueOf(color);
-    }
-
-    public static void hookTakeMoney(Player player, Material currency, int amount) {
-        IArena arena = Arena.getArenaByPlayer(player);
-        boolean xpArena = XPUtils.isXPArena(arena.getArenaName());
-        if (xpArena) {
-            int exp = XPUtils.getExp(currency);
-            if (exp > 0) {
-                player.setLevel(player.getLevel() - exp * amount);
-            } else {
-                CategoryContent.takeMoney(player, currency, amount);
-            }
-        } else {
-            CategoryContent.takeMoney(player, currency, amount);
-        }
     }
 }

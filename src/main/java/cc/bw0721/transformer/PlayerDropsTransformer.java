@@ -4,6 +4,7 @@ import cc.bw0721.asm.ASMTransformer;
 import cc.bw0721.utils.XPUtils;
 import com.andrei1058.bedwars.api.arena.IArena;
 import com.andrei1058.bedwars.api.arena.team.ITeam;
+import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.listeners.dropshandler.PlayerDrops;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -50,6 +51,24 @@ public class PlayerDropsTransformer extends ASMTransformer {
         }
     }
 
+    @Inject(method = "dropItems", desc = "(Lorg/bukkit/entity/Player;Ljava/util/List;)V")
+    public void hookDropItems(MethodNode method) {
+        AbstractInsnNode lastReturn = null;
+        for (AbstractInsnNode insn : method.instructions) {
+            if (insn.getOpcode() == Opcodes.RETURN) lastReturn = insn;
+        }
+        if (lastReturn == null) return;
+
+        InsnList insert = new InsnList();
+        insert.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        insert.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                Type.getInternalName(PlayerDropsTransformer.class),
+                "handleDropItems",
+                "(Lorg/bukkit/entity/Player;)V",
+                false));
+        method.instructions.insertBefore(lastReturn, insert);
+    }
+
     private static AbstractInsnNode skipFrames(AbstractInsnNode node) {
         while (node != null && (node instanceof FrameNode || node instanceof LabelNode || node instanceof LineNumberNode)) {
             node = node.getNext();
@@ -58,10 +77,29 @@ public class PlayerDropsTransformer extends ASMTransformer {
     }
 
     public static void handleDeathLootDrop(IArena arena, Player victim, ITeam victimsTeam) {
-        int level = victim.getLevel();
-        if (level > 0) {
-            Vector v = victimsTeam.getKillDropsLocation();
-            victim.getWorld().dropItemNaturally(new Location(arena.getWorld(), v.getX(), v.getY(), v.getZ()), new ItemStack(XPUtils.getExpBottleMaterial(), level / 10));
-        }
+        if (arena == null || victimsTeam == null) return;
+        if (!XPUtils.isXPArena(arena.getArenaName())) return;
+        Vector v = victimsTeam.getKillDropsLocation();
+        if (v == null || arena.getWorld() == null) return;
+        dropExpBottles(victim, new Location(arena.getWorld(), v.getX(), v.getY(), v.getZ()));
+    }
+
+    public static void handleDropItems(Player victim) {
+        if (victim == null) return;
+        IArena arena = Arena.getArenaByPlayer(victim);
+        if (arena == null || !XPUtils.isXPArena(arena.getArenaName())) return;
+        dropExpBottles(victim, victim.getLocation());
+    }
+
+    private static void dropExpBottles(Player victim, Location location) {
+        if (location == null || location.getWorld() == null) return;
+        int amount = bottleCount(victim.getLevel(), XPUtils.getExp(XPUtils.getExpBottleMaterial()));
+        if (amount <= 0) return;
+        location.getWorld().dropItemNaturally(location, new ItemStack(XPUtils.getExpBottleMaterial(), amount));
+    }
+
+    static int bottleCount(int level, int bottleValue) {
+        if (level <= 0) return 0;
+        return level / (bottleValue > 0 ? bottleValue : 10);
     }
 }

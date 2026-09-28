@@ -43,11 +43,12 @@ cc.bw0721
 │       ├── ReloadCommand    — /bw0721 reload
 │       └── AddArenaCommand  — /bw0721 addarena <arena>
 ├── listener
-│   └── PickupItemListener   — Intercepts item pickups, converts to XP in XP arenas
+│   ├── PickupItemListener   — Intercepts item pickups, converts to XP in XP arenas
+│   └── DeathListener        — LOWEST: kills vanilla XP orbs. MONITOR: killer takes the victim's levels, victim is zeroed
 ├── transformer
 │   ├── OreGeneratorTransformer    — ASM hook into OreGenerator.spawn(), redirects jump target to replace per-player item distribution
-│   ├── CategoryContentTransformer — ASM hook into shop, rewrites calculateMoney/takeMoney/getPrice/currency display calls to XP-aware versions
-│   └── PlayerDropsTransformer     — (stub) planned hook into PlayerDrops.handlePlayerDrops
+│   ├── CategoryContentTransformer — ASM hook into shop: rewrites calculateMoney/takeMoney bodies, plus getPrice/currency display call sites
+│   └── PlayerDropsTransformer     — ASM hook into PlayerDrops: XP bottles after the bed-destroyed drop loop and at the end of dropItems
 ├── asm
 │   ├── TransformerManager   — init(): registers transformers, triggers bytecode patching + NativeUtils.b()
 │   ├── Transform           — Manages ASMTransformer list, iterates @Inject methods, rewrites classes
@@ -84,7 +85,7 @@ BedWars0721.onEnable()
 ### Native library system
 
 **NativeUtils.java:**
-- `static {}` block: detects OS/arch → maps to target triple (e.g. `x86_64-windows`) → extracts DLL/SO from JAR resource → `System.load()`
+- `static {}` block: detects OS/arch → maps to target triple (e.g. `x86_64-windows`) → extracts DLL/SO/dylib from JAR resource → `System.load()`
 - `native a(Class)` — JVMTI `RetransformClasses` — triggers ClassFileLoadHook callback
 - `native b(Class, byte[])` — JVMTI `RedefineClasses` — hot-replaces class bytecode
 - `a(Class, ClassLoader, String, byte[])` — JVM callback from `ProcessHookedClassFile`, caches original bytes
@@ -96,7 +97,7 @@ BedWars0721.onEnable()
 - `Java_cc_bw0721_utils_NativeUtils_b` — `RedefineClasses(1, &classDef)`
 - `saved_classloader` cached on first native call from Java side
 
-**build.zig:** Cross-compiles dllmain.cpp → 6 platform targets (`x86_64-windows`, `x86-windows`, `aarch64-windows`, `x86_64-linux-gnu`, `x86-linux-gnu`, `aarch64-linux-gnu`)
+**build.zig:** Cross-compiles dllmain.cpp → 8 platform targets (`x86_64-windows`, `x86-windows`, `aarch64-windows`, `x86_64-linux-gnu`, `x86-linux-gnu`, `aarch64-linux-gnu`, `x86_64-macos`, `aarch64-macos`)
 
 ### Transformer patterns
 
@@ -136,6 +137,36 @@ To add a new transformer:
 ### Reference sources
 
 `skid/BedWars1058-25.9/` contains decompiled BedWars1058 sources used as reference when writing ASM hooks. These are NOT compiled or shipped — read-only reference for understanding target class bytecode shapes.
+
+## XP mode standard (经验起床)
+
+The complete-behaviour spec for XP mode. Reference implementations: `skid/BedWars1058-25.9/` (decompiled sources) and the BedWars1058-XP fork. Every hook must be written against the real bytecode of `libs/bedwars-plugin-25.2.jar` (`javap -p -c -classpath libs/bedwars-plugin-25.2.jar <class>`), not against the 25.9 reference sources.
+
+### Rules
+
+1. **Currency is the vanilla XP level** (`Player#getLevel`). `currency` in the plugin config maps material name → levels granted per item. Unset or `0` = that material stays an item.
+2. **Scope**: only arenas listed in `xp-arenas`. Vanilla BedWars1058 already zeroes level/exp on arena join and restores them on leave (`PlayerGoods`), so in-game levels never leak to the lobby.
+3. **Earning**: picking up a dropped resource converts it to levels (`PickupItemListener`, `amount × currency value`); generator "gen-split" payouts go straight to the inventory and never fire a pickup event, so they convert inside `OreGenerator.spawn` (`OreGeneratorTransformer`, `generator amount × currency value`).
+4. **Spending**: shop, team upgrades and traps all settle through `CategoryContent.calculateMoney` / `CategoryContent.takeMoney`. Those two method bodies are rewritten in place so every caller (shop GUI, quick buy, `MenuUpgrade`, `MenuBaseTrap`, `BedWars#getShopUtil`) is XP-aware; price display stays a call-site hook.
+5. **Death**:
+   - Vanilla XP orbs are always suppressed (`PlayerDeathEvent#setDroppedExp(0)`) — an orb is not an `Item`, so `PlayerPickupItemListener` can never intercept it and it would leak free levels.
+   - Regular death (bed alive + killer in arena + killer not respawning) → the killer **takes** the victim's levels; the victim is zeroed. No bottles.
+   - Any other death (void, no killer, despawnable, PvP logout) → `level / bottleValue` XP bottles drop at the death location; the victim is zeroed.
+   - Final kill (bed destroyed) → `level / bottleValue` XP bottles drop at the team kill-drops location.
+   - `bottleValue` = `currency` entry of the XP bottle material (default 10), so collecting the bottles roughly refunds the level.
+6. **Shop display**: price = vanilla price × currency XP value; currency label/colour come from `messages.experience` / `messages.experience-color`; the "insufficient money" gap is expressed in levels, not in item counts.
+7. **Hooks are null-safe**: `Arena.getArenaByPlayer` can return null, and every drop path guards on `XPUtils.isXPArena` so normal arenas keep vanilla behaviour.
+8. **Known limitations**: the upgrade/trap menu lore still prints the original currency name and item price (only affordability and deduction are XP-aware) — same as the reference fork. In mixed mode (a currency whose value is 0, e.g. diamonds by default) the price text stays an item price while `getItemStack` still paints it with `messages.experience-color`, because the colour hook only receives the colour local, not the currency.
+
+### Checklist
+
+- [x] Block vanilla XP orbs on death in XP arenas
+- [x] Killer takes the victim's levels on a regular death (victim zeroed)
+- [x] Drop XP bottles from `PlayerDrops.dropItems` (void / no killer / despawnable / PvP logout)
+- [x] Make team upgrades and traps settle in XP (rewrite `CategoryContent.calculateMoney` + `takeMoney` bodies)
+- [x] Report the insufficient-balance gap in levels, not item units
+- [x] Null-safe hooks + `isXPArena` guard on every drop path
+- [x] Verified: `Arena.removePlayer` needs no change (vanilla `PlayerGoods.restore` already rewrites level and exp)
 
 ## Agent skills
 
