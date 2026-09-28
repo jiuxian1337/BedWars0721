@@ -1,10 +1,51 @@
 # BedWars0721 · 经验起床
 
 [![Build](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml/badge.svg)](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml)
+[![Stars](https://img.shields.io/github/stars/jiuxian1337/BedWars0721?color=f5c542&label=stars)](https://github.com/jiuxian1337/BedWars0721/stargazers)
+[![License](https://img.shields.io/github/license/jiuxian1337/BedWars0721?color=orange&label=license)](LICENSE)
+[![Bilibili](https://img.shields.io/badge/B站-开服教程视频-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV1jMaj69EGg/)
+[![QQ群](https://img.shields.io/badge/QQ群-点击加入-12B7F5?logo=tencentqq&logoColor=white)](https://qm.qq.com/q/YUi9MZse8E)
 
-一个 [BedWars1058](https://github.com/andrei1058/BedWars1058) 的附属插件，**把经验条上的等级直接当钱花** —— 也就是大家熟悉的「经验起床」玩法。
+### 把经验条上的等级，直接当钱花
 
-这里没有额外的货币系统：**经验就是等级，等级就是钱**。你经验条上显示的那个数字，捡资源时往上涨，买东西时往下扣。资源不再是资源，捡起来就变成经验；商店、升级、陷阱统一用经验结算。用经验换装备，还是攒着冲一波大的，全看你自己。
+一个 [BedWars1058](https://github.com/andrei1058/BedWars1058) 附属插件，也就是大家熟悉的「经验起床」玩法：**捡起资源直接涨等级，商店 / 升级 / 陷阱全部用等级结算**。
+
+这里没有额外的货币系统 —— 你经验条上显示的那个数字，就是钱。攒着冲一波大的，还是当场换成装备，全看你自己。
+
+- 🎯 **即插即用** —— 丢进 `plugins/` 就能跑，不用改服务端、不需要数据库
+- 🔒 **只影响你指定的地图** —— 没加入列表的地图完全保持原版玩法，不污染其它模式
+- ⚡ **底层注入** —— 直接改写 BedWars1058 的字节码，没有额外轮询和 API 绕路的开销
+
+<p align="center">
+  <a href="#下载与安装"><b>⬇️ 立即下载</b></a> &nbsp;·&nbsp;
+  <a href="https://www.bilibili.com/video/BV1jMaj69EGg/"><b>📺 开服教程视频</b></a> &nbsp;·&nbsp;
+  <a href="#交流与反馈"><b>💬 加入交流群</b></a>
+</p>
+
+---
+
+## 下载与安装
+
+**下载地址**：[GitHub Actions 最新构建](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml)，点进最新一次运行，在页面底部 **Artifacts** 里下载 `BedWars0721`，解压得到的 `BedWars0721-1.0.jar` 就是插件本体。
+
+> Actions 下载需要登录 GitHub 账号；[Releases](https://github.com/jiuxian1337/BedWars0721/releases) 页面发布正式版本后即可免登录直接下载。
+
+**环境要求**
+
+| | |
+| --- | --- |
+| 服务端 | Spigot / Paper 及其衍生端，1.8 ~ 1.13+（插件按 1.8.8 编译） |
+| Java | **17 或更高** |
+| 前置插件 | [BedWars1058](https://github.com/andrei1058/BedWars1058)（建议使用与本插件匹配的版本） |
+
+**四步开起来**
+
+1. 把 `BedWars0721-1.0.jar` 放进服务端的 `plugins/` 目录
+2. 重启服务器（会自动生成 `plugins/BedWars0721/config.yml`）
+3. 进游戏执行 `/bw0721 addxparena <地图名>`，把需要经验模式的地图加进去
+4. 进这局地图，捡个铁锭看看等级有没有涨 ✅
+
+> 更想看视频操作？→ [**经验起床战争开服教程（B 站）**](https://www.bilibili.com/video/BV1jMaj69EGg/)
 
 ---
 
@@ -39,29 +80,6 @@
 ### 不影响其它模式
 
 只有被加入列表的地图才启用经验模式，其它地图完全保持原版起床战争玩法。
-
----
-
-## 安装
-
-**环境要求**
-
-- 服务端：Spigot / Paper 1.8 ~ 1.13+（插件以 1.8.8 为目标编译）
-- Java：**17 或更高**
-- 前置插件：[BedWars1058](https://github.com/andrei1058/BedWars1058)（建议使用与本插件匹配的版本）
-
-**步骤**
-
-1. 下载 `BedWars0721-1.0.jar`（[Releases](https://github.com/jiuxian1337/BedWars0721/releases) 或 [Actions](https://github.com/jiuxian1337/BedWars0721/actions/workflows/build.yml) 的最新构建产物）
-2. 放入服务端的 `plugins/` 目录
-3. 重启服务器
-4. 进入游戏，用命令把需要经验模式的地图加进去：
-
-```
-/bw0721 addxparena <地图名>
-```
-
-5. 进入该地图开一局，捡起铁锭看看等级有没有涨
 
 ---
 
@@ -123,12 +141,33 @@
 
 ---
 
-## 反馈与交流
+## 支持这个项目
 
-- 遇到 Bug 或有功能建议：欢迎提 [Issue](https://github.com/jiuxian1337/BedWars0721/issues)
-- **开服 / 插件 / 反作弊交流群：`1060682915`** —— 使用问题、开服求助都可以进群聊
+这个插件完全免费开源。如果它帮到了你：
+
+- ⭐ **点一个 Star** —— 让更多服主能刷到这个插件，这是对作者最实在的支持
+- 📺 把[开服教程视频](https://www.bilibili.com/video/BV1jMaj69EGg/)分享给需要的朋友或服主群
+- 🐛 遇到 Bug 或有功能建议，欢迎[提 Issue](https://github.com/jiuxian1337/BedWars0721/issues)
+- 💬 加入交流群，使用问题、开服求助都可以直接问
+
+## 交流与反馈
+
+- 💬 **QQ 群**：[点击链接加入群聊【WatchNeko】](https://qm.qq.com/q/YUi9MZse8E)
+- 🧰 **开服 / 插件 / 反作弊交流群**：`1060682915`（搜索群号加入）
+- 📺 **B 站**：[经验起床战争开服教程](https://www.bilibili.com/video/BV1jMaj69EGg/)
+- 🐛 **Bug / 功能建议**：[GitHub Issues](https://github.com/jiuxian1337/BedWars0721/issues)
 
 ## 相关链接
 
 - [BedWars1058](https://github.com/andrei1058/BedWars1058) —— 本插件依赖的核心起床战争插件
 - [本项目仓库](https://github.com/jiuxian1337/BedWars0721)
+
+---
+
+## 开源协议
+
+本项目采用 [GNU General Public License v3.0](LICENSE) 授权，与前置插件 BedWars1058 保持一致。
+
+Copyright (C) 2026 jiuxian1337 (P01_4rU5er)
+
+你可以自由使用、修改和分发本插件（包括开服使用和二次开发），但**分发修改后的版本时必须同样以 GPL-3.0 开源并附上源码**，同时保留版权声明。本插件不提供任何担保。
